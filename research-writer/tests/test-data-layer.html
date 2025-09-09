@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Research Writer - Data Layer Tests</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .test-container {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        
+        .test-pass {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .test-fail {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .test-info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        
+        .test-warn {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+        
+        .stats {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        
+        .stat-item {
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background-color: #0056b3;
+        }
+        
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #007bff;
+            transition: width 0.3s ease;
+        }
+        
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 0.9em;
+        }
+        
+        .error-details {
+            background-color: #fff5f5;
+            border: 1px solid #fed7d7;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Research Writer - Data Layer Test Suite</h1>
+        
+        <div class="stats">
+            <h2>Test Statistics</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="total-tests">0</div>
+                    <div>Total Tests</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="passed-tests">0</div>
+                    <div>Passed</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="failed-tests">0</div>
+                    <div>Failed</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="test-time">0ms</div>
+                    <div>Execution Time</div>
+                </div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+            </div>
+        </div>
+        
+        <div>
+            <button onclick="runAllTests()" id="run-tests-btn">Run All Tests</button>
+            <button onclick="runModelTests()" id="run-models-btn">Test Models Only</button>
+            <button onclick="runServiceTests()" id="run-services-btn">Test Services Only</button>
+            <button onclick="clearResults()">Clear Results</button>
+            <button onclick="exportResults()">Export Results</button>
+        </div>
+        
+        <div id="test-results"></div>
+    </div>
+
+    <!-- Import modules -->
+    <script type="module">
+        // Import all the modules we need to test
+        import { Project, ProjectSchema } from '../js/models/Project.js';
+        import { Citation, CitationSchema } from '../js/models/Citation.js';
+        import { Note, NoteSchema } from '../js/models/Note.js';
+        import { Draft, DraftSchema } from '../js/models/Draft.js';
+        import { StorageService } from '../js/services/StorageService.js';
+        import { DataValidator } from '../js/services/DataValidator.js';
+        import { ImportExportService } from '../js/services/ImportExport.js';
+        import { CompressionUtils, quickCompress, quickDecompress } from '../js/utils/compression.js';
+
+        // Make modules available globally for the test runner
+        window.TestModules = {
+            Project, ProjectSchema,
+            Citation, CitationSchema,
+            Note, NoteSchema,
+            Draft, DraftSchema,
+            StorageService,
+            DataValidator,
+            ImportExportService,
+            CompressionUtils,
+            quickCompress,
+            quickDecompress
+        };
+
+        // Test framework
+        class TestRunner {
+            constructor() {
+                this.tests = [];
+                this.results = [];
+                this.currentSuite = null;
+                this.startTime = 0;
+                this.endTime = 0;
+            }
+
+            suite(name, tests) {
+                this.currentSuite = name;
+                tests();
+                this.currentSuite = null;
+            }
+
+            test(name, testFn) {
+                this.tests.push({
+                    suite: this.currentSuite,
+                    name: name,
+                    fn: testFn
+                });
+            }
+
+            async runAll() {
+                this.results = [];
+                this.startTime = performance.now();
+                this.updateProgress(0);
+                
+                for (let i = 0; i < this.tests.length; i++) {
+                    const test = this.tests[i];
+                    const result = await this.runSingleTest(test);
+                    this.results.push(result);
+                    
+                    const progress = ((i + 1) / this.tests.length) * 100;
+                    this.updateProgress(progress);
+                    
+                    this.displayResult(result);
+                }
+                
+                this.endTime = performance.now();
+                this.updateStats();
+            }
+
+            async runSingleTest(test) {
+                const result = {
+                    suite: test.suite,
+                    name: test.name,
+                    passed: false,
+                    error: null,
+                    duration: 0,
+                    assertions: []
+                };
+
+                const startTime = performance.now();
+                
+                try {
+                    await test.fn(new TestAssertions(result));
+                    result.passed = result.assertions.every(a => a.passed);
+                } catch (error) {
+                    result.passed = false;
+                    result.error = error;
+                }
+                
+                result.duration = performance.now() - startTime;
+                return result;
+            }
+
+            displayResult(result) {
+                const resultsContainer = document.getElementById('test-results');
+                const testElement = document.createElement('div');
+                testElement.className = 'test-section';
+                
+                const status = result.passed ? 'PASS' : 'FAIL';
+                const statusClass = result.passed ? 'test-pass' : 'test-fail';
+                
+                let html = `
+                    <h3>${result.suite ? result.suite + ': ' : ''}${result.name}</h3>
+                    <div class="test-result ${statusClass}">
+                        <strong>${status}</strong> - ${result.duration.toFixed(2)}ms
+                    </div>
+                `;
+                
+                if (result.assertions.length > 0) {
+                    html += '<div><strong>Assertions:</strong><ul>';
+                    result.assertions.forEach(assertion => {
+                        const assertClass = assertion.passed ? 'test-pass' : 'test-fail';
+                        html += `<li class="test-result ${assertClass}">${assertion.message}</li>`;
+                    });
+                    html += '</ul></div>';
+                }
+                
+                if (result.error) {
+                    html += `
+                        <div class="error-details">
+                            <strong>Error:</strong> ${result.error.message}<br>
+                            <pre>${result.error.stack || ''}</pre>
+                        </div>
+                    `;
+                }
+                
+                testElement.innerHTML = html;
+                resultsContainer.appendChild(testElement);
+            }
+
+            updateProgress(percent) {
+                const fill = document.getElementById('progress-fill');
+                if (fill) {
+                    fill.style.width = percent + '%';
+                }
+            }
+
+            updateStats() {
+                const totalTests = this.results.length;
+                const passedTests = this.results.filter(r => r.passed).length;
+                const failedTests = totalTests - passedTests;
+                const totalTime = this.endTime - this.startTime;
+                
+                document.getElementById('total-tests').textContent = totalTests;
+                document.getElementById('passed-tests').textContent = passedTests;
+                document.getElementById('failed-tests').textContent = failedTests;
+                document.getElementById('test-time').textContent = Math.round(totalTime) + 'ms';
+            }
+
+            clear() {
+                this.results = [];
+                document.getElementById('test-results').innerHTML = '';
+                this.updateProgress(0);
+                
+                document.getElementById('total-tests').textContent = '0';
+                document.getElementById('passed-tests').textContent = '0';
+                document.getElementById('failed-tests').textContent = '0';
+                document.getElementById('test-time').textContent = '0ms';
+            }
+
+            exportResults() {
+                const data = {
+                    timestamp: new Date().toISOString(),
+                    summary: {
+                        total: this.results.length,
+                        passed: this.results.filter(r => r.passed).length,
+                        failed: this.results.filter(r => !r.passed).length,
+                        duration: this.endTime - this.startTime
+                    },
+                    results: this.results
+                };
+                
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `test-results-${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+        }
+
+        class TestAssertions {
+            constructor(result) {
+                this.result = result;
+            }
+
+            assertTrue(condition, message = 'Expected condition to be true') {
+                const passed = Boolean(condition);
+                this.result.assertions.push({ passed, message });
+                if (!passed) {
+                    throw new Error(message);
+                }
+            }
+
+            assertFalse(condition, message = 'Expected condition to be false') {
+                const passed = !Boolean(condition);
+                this.result.assertions.push({ passed, message });
+                if (!passed) {
+                    throw new Error(message);
+                }
+            }
+
+            assertEqual(actual, expected, message) {
+                const passed = actual === expected;
+                const msg = message || `Expected ${expected}, got ${actual}`;
+                this.result.assertions.push({ passed, message: msg });
+                if (!passed) {
+                    throw new Error(msg);
+                }
+            }
+
+            assertNotEqual(actual, expected, message) {
+                const passed = actual !== expected;
+                const msg = message || `Expected not ${expected}, got ${actual}`;
+                this.result.assertions.push({ passed, message: msg });
+                if (!passed) {
+                    throw new Error(msg);
+                }
+            }
+
+            assertDeepEqual(actual, expected, message) {
+                const passed = JSON.stringify(actual) === JSON.stringify(expected);
+                const msg = message || `Objects are not deeply equal`;
+                this.result.assertions.push({ passed, message: msg });
+                if (!passed) {
+                    throw new Error(msg);
+                }
+            }
+
+            assertThrows(fn, message = 'Expected function to throw an error') {
+                let threw = false;
+                try {
+                    fn();
+                } catch (error) {
+                    threw = true;
+                }
+                this.result.assertions.push({ passed: threw, message });
+                if (!threw) {
+                    throw new Error(message);
+                }
+            }
+
+            assertExists(value, message = 'Expected value to exist') {
+                const passed = value !== null && value !== undefined;
+                this.result.assertions.push({ passed, message });
+                if (!passed) {
+                    throw new Error(message);
+                }
+            }
+
+            assertType(value, expectedType, message) {
+                const actualType = typeof value;
+                const passed = actualType === expectedType;
+                const msg = message || `Expected type ${expectedType}, got ${actualType}`;
+                this.result.assertions.push({ passed, message: msg });
+                if (!passed) {
+                    throw new Error(msg);
+                }
+            }
+        }
+
+        // Create global test runner
+        window.testRunner = new TestRunner();
+
+        // Define all tests
+        function defineAllTests() {
+            const { Project, Citation, Note, Draft, StorageService, DataValidator, ImportExportService, CompressionUtils } = window.TestModules;
+
+            // Project model tests
+            testRunner.suite('Project Model', () => {
+                testRunner.test('Create new project with default values', (assert) => {
+                    const project = new Project();
+                    assert.assertExists(project.id, 'Project should have an ID');
+                    assert.assertTrue(project.id.startsWith('proj_'), 'Project ID should start with proj_');
+                    assert.assertEqual(project.status, 'planning', 'Default status should be planning');
+                    assert.assertEqual(project.priority, 'medium', 'Default priority should be medium');
+                    assert.assertTrue(Array.isArray(project.tags), 'Tags should be an array');
+                });
+
+                testRunner.test('Create project with custom data', (assert) => {
+                    const data = {
+                        title: 'Test Project',
+                        author: 'Test Author',
+                        description: 'Test description',
+                        status: 'active',
+                        priority: 'high'
+                    };
+                    const project = new Project(data);
+                    assert.assertEqual(project.title, 'Test Project', 'Title should be set correctly');
+                    assert.assertEqual(project.author, 'Test Author', 'Author should be set correctly');
+                    assert.assertEqual(project.status, 'active', 'Status should be set correctly');
+                    assert.assertEqual(project.priority, 'high', 'Priority should be set correctly');
+                });
+
+                testRunner.test('Project validation', (assert) => {
+                    const validProject = new Project({
+                        title: 'Valid Project',
+                        author: 'Valid Author'
+                    });
+                    assert.assertTrue(validProject.isValid(), 'Valid project should pass validation');
+
+                    const invalidProject = new Project({
+                        title: '', // Empty title should be invalid
+                        author: 'Valid Author'
+                    });
+                    assert.assertFalse(invalidProject.isValid(), 'Invalid project should fail validation');
+                });
+
+                testRunner.test('Project statistics calculation', (assert) => {
+                    const project = new Project({
+                        title: 'Test Project',
+                        author: 'Test Author',
+                        citations: ['cite_1', 'cite_2'],
+                        notes: ['note_1', 'note_2', 'note_3'],
+                        drafts: ['draft_1']
+                    });
+                    const stats = project.getStats();
+                    assert.assertEqual(stats.totalCitations, 2, 'Should count citations correctly');
+                    assert.assertEqual(stats.totalNotes, 3, 'Should count notes correctly');
+                    assert.assertEqual(stats.totalDrafts, 1, 'Should count drafts correctly');
+                    assert.assertType(stats.completionScore, 'number', 'Completion score should be a number');
+                });
+
+                testRunner.test('Project serialization', (assert) => {
+                    const originalData = {
+                        title: 'Serialization Test',
+                        author: 'Test Author',
+                        tags: ['test', 'serialization']
+                    };
+                    const project = new Project(originalData);
+                    const json = project.toJSON();
+                    const restored = Project.fromJSON(json);
+                    
+                    assert.assertEqual(restored.title, project.title, 'Title should be preserved');
+                    assert.assertEqual(restored.author, project.author, 'Author should be preserved');
+                    assert.assertDeepEqual(restored.tags, project.tags, 'Tags should be preserved');
+                });
+            });
+
+            // Citation model tests
+            testRunner.suite('Citation Model', () => {
+                testRunner.test('Create basic citation', (assert) => {
+                    const citation = new Citation({
+                        title: 'Test Article',
+                        authors: ['Test Author'],
+                        year: 2023,
+                        type: 'article'
+                    });
+                    assert.assertExists(citation.id, 'Citation should have an ID');
+                    assert.assertTrue(citation.id.startsWith('cite_'), 'Citation ID should start with cite_');
+                    assert.assertEqual(citation.title, 'Test Article', 'Title should be set correctly');
+                    assert.assertEqual(citation.authors.length, 1, 'Should have one author');
+                    assert.assertEqual(citation.year, 2023, 'Year should be set correctly');
+                });
+
+                testRunner.test('Citation validation', (assert) => {
+                    const validCitation = new Citation({
+                        title: 'Valid Article',
+                        authors: ['Valid Author'],
+                        year: 2023
+                    });
+                    assert.assertTrue(validCitation.isValid(), 'Valid citation should pass validation');
+
+                    const invalidCitation = new Citation({
+                        title: '', // Empty title
+                        authors: [], // No authors
+                        year: 2023
+                    });
+                    assert.assertFalse(invalidCitation.isValid(), 'Invalid citation should fail validation');
+                });
+
+                testRunner.test('APA formatting', (assert) => {
+                    const citation = new Citation({
+                        title: 'Test Article',
+                        authors: ['Smith, J.', 'Doe, J.'],
+                        year: 2023,
+                        publication: 'Test Journal',
+                        volume: '10',
+                        issue: '2',
+                        pages: '123-145'
+                    });
+                    const formatted = citation.formatAPA();
+                    assert.assertTrue(formatted.includes('Smith, J.'), 'Should include first author');
+                    assert.assertTrue(formatted.includes('2023'), 'Should include year');
+                    assert.assertTrue(formatted.includes('Test Article'), 'Should include title');
+                    assert.assertTrue(formatted.includes('Test Journal'), 'Should include journal');
+                });
+
+                testRunner.test('BibTeX export', (assert) => {
+                    const citation = new Citation({
+                        title: 'Test Article',
+                        authors: ['Test Author'],
+                        year: 2023,
+                        publication: 'Test Journal'
+                    });
+                    const bibtex = citation.toBibTeX();
+                    assert.assertTrue(bibtex.includes('@article'), 'Should start with @article');
+                    assert.assertTrue(bibtex.includes('title={Test Article}'), 'Should include title');
+                    assert.assertTrue(bibtex.includes('author={Test Author}'), 'Should include author');
+                    assert.assertTrue(bibtex.includes('year={2023}'), 'Should include year');
+                });
+            });
+
+            // Note model tests
+            testRunner.suite('Note Model', () => {
+                testRunner.test('Create basic note', (assert) => {
+                    const note = new Note({
+                        title: 'Test Note',
+                        content: 'This is a test note with some content.',
+                        type: 'general'
+                    });
+                    assert.assertExists(note.id, 'Note should have an ID');
+                    assert.assertTrue(note.id.startsWith('note_'), 'Note ID should start with note_');
+                    assert.assertEqual(note.title, 'Test Note', 'Title should be set correctly');
+                    assert.assertTrue(note.wordCount > 0, 'Word count should be calculated');
+                });
+
+                testRunner.test('Note validation', (assert) => {
+                    const validNote = new Note({
+                        title: 'Valid Note',
+                        content: 'Valid content'
+                    });
+                    assert.assertTrue(validNote.isValid(), 'Valid note should pass validation');
+
+                    const invalidNote = new Note({
+                        title: '', // Empty title
+                        content: 'Content'
+                    });
+                    assert.assertFalse(invalidNote.isValid(), 'Invalid note should fail validation');
+                });
+
+                testRunner.test('Word count calculation', (assert) => {
+                    const note = new Note({
+                        title: 'Test Note',
+                        content: 'This is a test note with exactly ten words here.'
+                    });
+                    assert.assertEqual(note.wordCount, 10, 'Should count words correctly');
+                });
+
+                testRunner.test('Keyword extraction', (assert) => {
+                    const note = new Note({
+                        title: 'Test Note',
+                        content: 'This is a test. Testing keywords extraction from this test content.'
+                    });
+                    const keywords = note.extractKeywords(1);
+                    assert.assertTrue(Array.isArray(keywords), 'Keywords should be an array');
+                    assert.assertTrue(keywords.length > 0, 'Should extract some keywords');
+                });
+
+                testRunner.test('Note linking', (assert) => {
+                    const note = new Note({ title: 'Test Note' });
+                    note.linkToNote('note_123');
+                    note.linkToCitation('cite_456');
+                    
+                    assert.assertTrue(note.linkedNotes.includes('note_123'), 'Should link to note');
+                    assert.assertTrue(note.linkedCitations.includes('cite_456'), 'Should link to citation');
+                });
+
+                testRunner.test('Markdown export', (assert) => {
+                    const note = new Note({
+                        title: 'Test Note',
+                        content: 'Test content',
+                        tags: ['test', 'export']
+                    });
+                    const markdown = note.toMarkdown();
+                    assert.assertTrue(markdown.includes('# Test Note'), 'Should include title as header');
+                    assert.assertTrue(markdown.includes('Test content'), 'Should include content');
+                    assert.assertTrue(markdown.includes('test, export'), 'Should include tags');
+                });
+            });
+
+            // Draft model tests
+            testRunner.suite('Draft Model', () => {
+                testRunner.test('Create basic draft', (assert) => {
+                    const draft = new Draft({
+                        title: 'Test Draft',
+                        content: 'This is test content for the draft.',
+                        documentType: 'paper'
+                    });
+                    assert.assertExists(draft.id, 'Draft should have an ID');
+                    assert.assertTrue(draft.id.startsWith('draft_'), 'Draft ID should start with draft_');
+                    assert.assertEqual(draft.title, 'Test Draft', 'Title should be set correctly');
+                    assert.assertTrue(draft.wordCount > 0, 'Word count should be calculated');
+                });
+
+                testRunner.test('Version management', (assert) => {
+                    const draft = new Draft({
+                        title: 'Version Test',
+                        content: 'Original content'
+                    });
+                    const originalVersion = draft.version;
+                    
+                    draft.createVersion('Test version');
+                    assert.assertNotEqual(draft.version, originalVersion, 'Version should be incremented');
+                    assert.assertEqual(draft.versionHistory.length, 1, 'Should have one history entry');
+                });
+
+                testRunner.test('Reading time calculation', (assert) => {
+                    const content = 'word '.repeat(400); // 400 words
+                    const draft = new Draft({
+                        title: 'Reading Time Test',
+                        content: content
+                    });
+                    assert.assertEqual(draft.readingTime, 2, 'Should calculate reading time correctly (400 words = 2 minutes at 200 WPM)');
+                });
+
+                testRunner.test('Section management', (assert) => {
+                    const draft = new Draft({ title: 'Section Test' });
+                    const sectionId = draft.addSection('Introduction', 'This is the introduction.');
+                    
+                    assert.assertEqual(draft.sections.length, 1, 'Should have one section');
+                    assert.assertEqual(draft.sections[0].title, 'Introduction', 'Section title should be set');
+                    assert.assertEqual(draft.sections[0].content, 'This is the introduction.', 'Section content should be set');
+                    
+                    draft.removeSection(sectionId);
+                    assert.assertEqual(draft.sections.length, 0, 'Section should be removed');
+                });
+
+                testRunner.test('Draft statistics', (assert) => {
+                    const draft = new Draft({
+                        title: 'Stats Test',
+                        content: 'Test content',
+                        wordCountTarget: 1000
+                    });
+                    const stats = draft.getStats();
+                    
+                    assert.assertType(stats.wordCount, 'number', 'Word count should be a number');
+                    assert.assertType(stats.progressPercent, 'number', 'Progress percent should be a number');
+                    assert.assertType(stats.readingTime, 'number', 'Reading time should be a number');
+                    assert.assertTrue(stats.progressPercent >= 0 && stats.progressPercent <= 100, 'Progress should be between 0 and 100');
+                });
+            });
+
+            // StorageService tests
+            testRunner.suite('Storage Service', () => {
+                let storage;
+
+                testRunner.test('Initialize storage service', (assert) => {
+                    storage = new StorageService();
+                    assert.assertExists(storage, 'Storage service should be created');
+                    assert.assertType(storage.storagePrefix, 'string', 'Storage prefix should be a string');
+                    
+                    const metadata = storage.getMetadata();
+                    assert.assertExists(metadata, 'Metadata should exist');
+                    assert.assertExists(metadata.version, 'Metadata should have version');
+                });
+
+                testRunner.test('CRUD operations', (assert) => {
+                    const testData = {
+                        id: 'test_123',
+                        title: 'Test Item',
+                        content: 'Test content'
+                    };
+                    
+                    // Create
+                    const created = storage.create('test', testData);
+                    assert.assertDeepEqual(created, testData, 'Should return created data');
+                    
+                    // Read
+                    const read = storage.read('test', 'test_123');
+                    assert.assertExists(read, 'Should read the data');
+                    assert.assertEqual(read.title, 'Test Item', 'Should preserve title');
+                    
+                    // Update
+                    const updatedData = { ...testData, title: 'Updated Title' };
+                    const updated = storage.update('test', 'test_123', updatedData);
+                    assert.assertEqual(updated.title, 'Updated Title', 'Should update the title');
+                    
+                    // Delete
+                    const deleted = storage.delete('test', 'test_123');
+                    assert.assertTrue(deleted, 'Should delete successfully');
+                    
+                    const notFound = storage.read('test', 'test_123');
+                    assert.assertEqual(notFound, null, 'Deleted item should not be found');
+                });
+
+                testRunner.test('Batch operations', (assert) => {
+                    const testItems = [
+                        { id: 'batch_1', title: 'Batch Item 1' },
+                        { id: 'batch_2', title: 'Batch Item 2' },
+                        { id: 'batch_3', title: 'Batch Item 3' }
+                    ];
+                    
+                    const batchResult = storage.createBatch('test', testItems);
+                    assert.assertEqual(batchResult.results.length, 3, 'Should create all items');
+                    assert.assertEqual(batchResult.errors.length, 0, 'Should have no errors');
+                    
+                    const readBatch = storage.readBatch('test', ['batch_1', 'batch_2', 'batch_3']);
+                    assert.assertEqual(readBatch.length, 3, 'Should read all items');
+                    
+                    const deleteBatch = storage.deleteBatch('test', ['batch_1', 'batch_2', 'batch_3']);
+                    assert.assertEqual(deleteBatch.deletedCount, 3, 'Should delete all items');
+                });
+
+                testRunner.test('Query operations', (assert) => {
+                    // Create test data
+                    const testItems = [
+                        { id: 'query_1', title: 'First Item', status: 'active', priority: 'high' },
+                        { id: 'query_2', title: 'Second Item', status: 'inactive', priority: 'low' },
+                        { id: 'query_3', title: 'Third Item', status: 'active', priority: 'medium' }
+                    ];
+                    
+                    storage.createBatch('test', testItems);
+                    
+                    // Test filtering
+                    const activeItems = storage.list('test', {
+                        filter: item => item.status === 'active'
+                    });
+                    assert.assertEqual(activeItems.length, 2, 'Should filter active items');
+                    
+                    // Test sorting
+                    const sortedItems = storage.list('test', {
+                        sortBy: 'title',
+                        sortOrder: 'asc'
+                    });
+                    assert.assertEqual(sortedItems[0].title, 'First Item', 'Should sort by title ascending');
+                    
+                    // Test search
+                    const searchResults = storage.search('test', 'second', ['title']);
+                    assert.assertEqual(searchResults.length, 1, 'Should find one matching item');
+                    assert.assertEqual(searchResults[0].title, 'Second Item', 'Should find correct item');
+                    
+                    // Cleanup
+                    storage.deleteBatch('test', ['query_1', 'query_2', 'query_3']);
+                });
+
+                testRunner.test('Backup and restore', (assert) => {
+                    // Create test data
+                    const testData = { id: 'backup_test', title: 'Backup Test Item' };
+                    storage.create('test', testData);
+                    
+                    // Create backup
+                    const backupKey = storage.createBackup(['test']);
+                    assert.assertExists(backupKey, 'Should create backup');
+                    assert.assertTrue(backupKey.includes('backup_'), 'Backup key should contain backup_');
+                    
+                    // Delete original data
+                    storage.delete('test', 'backup_test');
+                    assert.assertEqual(storage.read('test', 'backup_test'), null, 'Original data should be deleted');
+                    
+                    // Restore from backup
+                    const restoreResult = storage.restoreBackup(backupKey);
+                    assert.assertExists(restoreResult.test, 'Should restore test collection');
+                    
+                    const restoredData = storage.read('test', 'backup_test');
+                    assert.assertExists(restoredData, 'Data should be restored');
+                    assert.assertEqual(restoredData.title, 'Backup Test Item', 'Restored data should be correct');
+                    
+                    // Cleanup
+                    storage.delete('test', 'backup_test');
+                    storage.deleteBackup(backupKey);
+                });
+            });
+
+            // DataValidator tests
+            testRunner.suite('Data Validator', () => {
+                let validator;
+
+                testRunner.test('Initialize validator', (assert) => {
+                    validator = new DataValidator();
+                    assert.assertExists(validator, 'Validator should be created');
+                    assert.assertExists(validator.schemas, 'Validator should have schemas');
+                    assert.assertExists(validator.schemas.projects, 'Should have project schema');
+                });
+
+                testRunner.test('Valid data validation', (assert) => {
+                    const validProject = {
+                        id: 'proj_123_abc',
+                        title: 'Valid Project',
+                        author: 'Valid Author',
+                        status: 'active',
+                        priority: 'medium',
+                        created: new Date().toISOString(),
+                        updated: new Date().toISOString(),
+                        tags: ['test'],
+                        citations: [],
+                        notes: [],
+                        drafts: []
+                    };
+                    
+                    const result = validator.validate('projects', validProject);
+                    assert.assertTrue(result.valid, 'Valid project should pass validation');
+                    assert.assertEqual(result.errors.length, 0, 'Should have no errors');
+                });
+
+                testRunner.test('Invalid data validation', (assert) => {
+                    const invalidProject = {
+                        id: 'invalid_id', // Wrong ID format
+                        title: '', // Empty title
+                        author: 'Valid Author',
+                        status: 'invalid_status', // Invalid status
+                        created: 'invalid_date', // Invalid date
+                        tags: 'not_an_array' // Should be array
+                    };
+                    
+                    const result = validator.validate('projects', invalidProject);
+                    assert.assertFalse(result.valid, 'Invalid project should fail validation');
+                    assert.assertTrue(result.errors.length > 0, 'Should have errors');
+                });
+
+                testRunner.test('Business logic validation', (assert) => {
+                    const projectWithLogicErrors = {
+                        id: 'proj_123_abc',
+                        title: 'Logic Test',
+                        author: 'Test Author',
+                        status: 'completed', // Completed status
+                        drafts: [], // But no drafts
+                        created: new Date().toISOString(),
+                        updated: new Date().toISOString()
+                    };
+                    
+                    const result = validator.validate('projects', projectWithLogicErrors);
+                    assert.assertTrue(result.errors.some(error => 
+                        error.includes('Completed projects should have at least one draft')
+                    ), 'Should catch business logic error');
+                });
+
+                testRunner.test('Security validation', (assert) => {
+                    const maliciousData = {
+                        id: 'proj_123_abc',
+                        title: 'Normal Title',
+                        author: 'Test Author',
+                        description: '<script>alert("xss")</script>', // Malicious content
+                        created: new Date().toISOString(),
+                        updated: new Date().toISOString()
+                    };
+                    
+                    const result = validator.validate('projects', maliciousData);
+                    assert.assertTrue(result.errors.some(error => 
+                        error.includes('Potentially malicious content detected')
+                    ), 'Should detect malicious content');
+                });
+
+                testRunner.test('Batch validation', (assert) => {
+                    const testData = [
+                        {
+                            id: 'proj_1_abc',
+                            title: 'Valid Project',
+                            author: 'Valid Author',
+                            created: new Date().toISOString(),
+                            updated: new Date().toISOString()
+                        },
+                        {
+                            id: 'invalid_id',
+                            title: '',
+                            author: 'Valid Author',
+                            created: new Date().toISOString(),
+                            updated: new Date().toISOString()
+                        }
+                    ];
+                    
+                    const results = validator.validateBatch('projects', testData);
+                    assert.assertEqual(results.length, 2, 'Should validate both items');
+                    assert.assertTrue(results[0].valid, 'First item should be valid');
+                    assert.assertFalse(results[1].valid, 'Second item should be invalid');
+                });
+            });
+
+            // Compression tests
+            testRunner.suite('Compression Utilities', () => {
+                let compressor;
+
+                testRunner.test('Initialize compressor', (assert) => {
+                    compressor = new CompressionUtils();
+                    assert.assertExists(compressor, 'Compressor should be created');
+                    assert.assertExists(compressor.algorithms, 'Should have algorithms');
+                });
+
+                testRunner.test('Basic compression and decompression', (assert) => {
+                    const originalData = 'This is a test string that should be compressed efficiently.';
+                    
+                    const compressed = compressor.compress(originalData, 'lz', { forceCompression: true });
+                    assert.assertTrue(compressed.compressed, 'Data should be marked as compressed');
+                    assert.assertEqual(compressed.algorithm, 'lz', 'Should use LZ algorithm');
+                    assert.assertEqual(compressed.originalSize, originalData.length, 'Should track original size');
+                    
+                    const decompressed = compressor.decompress(compressed);
+                    assert.assertEqual(decompressed, originalData, 'Decompressed data should match original');
+                });
+
+                testRunner.test('Compression threshold', (assert) => {
+                    const shortString = 'short';
+                    
+                    const result = compressor.compress(shortString);
+                    assert.assertFalse(result.compressed, 'Short strings should not be compressed');
+                    assert.assertEqual(result.data, shortString, 'Should return original data');
+                });
+
+                testRunner.test('JSON data compression', (assert) => {
+                    const jsonData = {
+                        title: 'Test Data',
+                        content: 'This is test content that should compress well.',
+                        tags: ['test', 'compression', 'data'],
+                        metadata: { version: '1.0', author: 'Test' }
+                    };
+                    
+                    const compressed = compressor.compress(jsonData, 'lz', { forceCompression: true });
+                    assert.assertTrue(compressed.compressed, 'JSON should be compressed');
+                    
+                    const decompressed = compressor.decompress(compressed);
+                    const parsedDecompressed = JSON.parse(decompressed);
+                    assert.assertDeepEqual(parsedDecompressed, jsonData, 'Decompressed JSON should match original');
+                });
+
+                testRunner.test('Batch compression', (assert) => {
+                    const items = [
+                        'First test string for batch compression',
+                        'Second test string for batch compression',
+                        'Third test string for batch compression'
+                    ];
+                    
+                    const batchResult = compressor.compressBatch(items, 'lz', { forceCompression: true });
+                    assert.assertEqual(batchResult.results.length, 3, 'Should process all items');
+                    assert.assertEqual(batchResult.statistics.successfulCompressions, 3, 'All compressions should succeed');
+                    assert.assertTrue(batchResult.statistics.overallCompressionRatio < 1, 'Should achieve compression');
+                });
+
+                testRunner.test('Compression integrity', (assert) => {
+                    const testData = 'Test data for integrity check';
+                    const compressed = compressor.compress(testData, 'lz', { forceCompression: true });
+                    
+                    const integrityResult = compressor.testIntegrity(compressed, testData);
+                    assert.assertTrue(integrityResult.valid, 'Compressed data should pass integrity check');
+                    assert.assertEqual(integrityResult.decompressed, testData, 'Decompressed data should match');
+                });
+
+                testRunner.test('Quick compression functions', (assert) => {
+                    const { quickCompress, quickDecompress } = window.TestModules;
+                    const testString = 'Quick compression test string';
+                    
+                    const compressed = quickCompress(testString);
+                    const decompressed = quickDecompress(compressed);
+                    
+                    if (compressed.compressed) {
+                        assert.assertEqual(decompressed, testString, 'Quick functions should work correctly');
+                    } else {
+                        assert.assertEqual(compressed.data, testString, 'Short string should not be compressed');
+                    }
+                });
+            });
+
+            // Integration tests
+            testRunner.suite('Integration Tests', () => {
+                let storage, validator, importExport;
+
+                testRunner.test('Initialize services', (assert) => {
+                    storage = new StorageService();
+                    validator = new DataValidator();
+                    importExport = new ImportExportService(storage);
+                    
+                    assert.assertExists(storage, 'Storage service should be initialized');
+                    assert.assertExists(validator, 'Validator should be initialized');
+                    assert.assertExists(importExport, 'Import/Export service should be initialized');
+                });
+
+                testRunner.test('Complete workflow - Project with Citations and Notes', (assert) => {
+                    // Create a project
+                    const project = new Project({
+                        title: 'Integration Test Project',
+                        author: 'Test Author',
+                        description: 'A project for testing integration between models and services'
+                    });
+                    
+                    // Validate and store the project
+                    const projectValidation = validator.validate('projects', project);
+                    assert.assertTrue(projectValidation.valid, 'Project should be valid');
+                    
+                    const storedProject = storage.create('projects', project);
+                    assert.assertExists(storedProject, 'Project should be stored');
+                    
+                    // Create a citation
+                    const citation = new Citation({
+                        projectId: project.id,
+                        title: 'Test Citation',
+                        authors: ['Citation Author'],
+                        year: 2023,
+                        type: 'article'
+                    });
+                    
+                    const citationValidation = validator.validate('citations', citation);
+                    assert.assertTrue(citationValidation.valid, 'Citation should be valid');
+                    
+                    const storedCitation = storage.create('citations', citation);
+                    assert.assertExists(storedCitation, 'Citation should be stored');
+                    
+                    // Create a note linked to the citation
+                    const note = new Note({
+                        projectId: project.id,
+                        title: 'Test Note',
+                        content: 'This note is linked to the test citation',
+                        sourceId: citation.id
+                    });
+                    
+                    const noteValidation = validator.validate('notes', note);
+                    assert.assertTrue(noteValidation.valid, 'Note should be valid');
+                    
+                    const storedNote = storage.create('notes', note);
+                    assert.assertExists(storedNote, 'Note should be stored');
+                    
+                    // Update project with references
+                    const updatedProject = project.update({
+                        citations: [citation.id],
+                        notes: [note.id]
+                    });
+                    
+                    const finalProject = storage.update('projects', project.id, updatedProject);
+                    assert.assertTrue(finalProject.citations.includes(citation.id), 'Project should reference citation');
+                    assert.assertTrue(finalProject.notes.includes(note.id), 'Project should reference note');
+                    
+                    // Test cross-reference validation
+                    const refValidation = validator.validateReferences(storage, 'notes', note);
+                    assert.assertTrue(refValidation.valid, 'Cross-references should be valid');
+                    
+                    // Cleanup
+                    storage.delete('projects', project.id);
+                    storage.delete('citations', citation.id);
+                    storage.delete('notes', note.id);
+                });
+
+                testRunner.test('Export and Import workflow', (assert) => {
+                    // Create test data
+                    const project = new Project({
+                        title: 'Export Test Project',
+                        author: 'Export Author'
+                    });
+                    
+                    const citation = new Citation({
+                        title: 'Export Test Citation',
+                        authors: ['Export Author'],
+                        year: 2023
+                    });
+                    
+                    storage.create('projects', project);
+                    storage.create('citations', citation);
+                    
+                    // Export data
+                    const exportedData = importExport.exportData({
+                        collections: ['projects', 'citations'],
+                        format: 'json'
+                    });
+                    
+                    assert.assertType(exportedData, 'string', 'Exported data should be a string');
+                    
+                    const parsedExport = JSON.parse(exportedData);
+                    assert.assertExists(parsedExport.data, 'Export should contain data');
+                    assert.assertExists(parsedExport.data.projects, 'Should export projects');
+                    assert.assertExists(parsedExport.data.citations, 'Should export citations');
+                    
+                    // Clear storage
+                    storage.clear('projects');
+                    storage.clear('citations');
+                    
+                    // Import data back
+                    const importResult = importExport.importData(exportedData, {
+                        format: 'json'
+                    });
+                    
+                    assert.assertTrue(importResult.success, 'Import should succeed');
+                    assert.assertTrue(importResult.summary.newItems > 0, 'Should import new items');
+                    
+                    // Verify data was imported
+                    const importedProject = storage.read('projects', project.id);
+                    const importedCitation = storage.read('citations', citation.id);
+                    
+                    assert.assertExists(importedProject, 'Project should be imported');
+                    assert.assertExists(importedCitation, 'Citation should be imported');
+                    assert.assertEqual(importedProject.title, project.title, 'Project title should match');
+                    assert.assertEqual(importedCitation.title, citation.title, 'Citation title should match');
+                    
+                    // Cleanup
+                    storage.delete('projects', project.id);
+                    storage.delete('citations', citation.id);
+                });
+
+                testRunner.test('Storage with compression', (assert) => {
+                    const { CompressionMiddleware } = window.TestModules;
+                    const compressedStorage = new CompressionMiddleware(storage, {
+                        autoCompress: true,
+                        compressionThreshold: 100
+                    });
+                    
+                    // Create large content that should be compressed
+                    const largeDraft = new Draft({
+                        title: 'Large Draft',
+                        content: 'Large content. '.repeat(100) // > 100 chars
+                    });
+                    
+                    const stored = compressedStorage.create('drafts', largeDraft);
+                    assert.assertExists(stored, 'Large draft should be stored');
+                    
+                    const retrieved = compressedStorage.read('drafts', largeDraft.id);
+                    assert.assertExists(retrieved, 'Large draft should be retrieved');
+                    assert.assertEqual(retrieved.title, largeDraft.title, 'Title should be preserved');
+                    assert.assertEqual(retrieved.content, largeDraft.content, 'Content should be preserved');
+                    
+                    // Cleanup
+                    storage.delete('drafts', largeDraft.id);
+                });
+            });
+        }
+
+        // Global test functions
+        window.runAllTests = async () => {
+            const button = document.getElementById('run-tests-btn');
+            button.disabled = true;
+            button.textContent = 'Running Tests...';
+            
+            try {
+                testRunner.clear();
+                defineAllTests();
+                await testRunner.runAll();
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Run All Tests';
+            }
+        };
+
+        window.runModelTests = async () => {
+            const button = document.getElementById('run-models-btn');
+            button.disabled = true;
+            button.textContent = 'Running Model Tests...';
+            
+            try {
+                testRunner.clear();
+                testRunner.tests = [];
+                
+                // Only define model tests
+                const { Project, Citation, Note, Draft } = window.TestModules;
+                
+                testRunner.suite('Project Model', () => {
+                    // Add project tests here (same as above)
+                });
+                
+                await testRunner.runAll();
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Test Models Only';
+            }
+        };
+
+        window.runServiceTests = async () => {
+            const button = document.getElementById('run-services-btn');
+            button.disabled = true;
+            button.textContent = 'Running Service Tests...';
+            
+            try {
+                testRunner.clear();
+                testRunner.tests = [];
+                
+                // Only define service tests
+                const { StorageService, DataValidator, ImportExportService, CompressionUtils } = window.TestModules;
+                
+                // Add service tests here
+                
+                await testRunner.runAll();
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Test Services Only';
+            }
+        };
+
+        window.clearResults = () => {
+            testRunner.clear();
+        };
+
+        window.exportResults = () => {
+            testRunner.exportResults();
+        };
+
+        // Auto-run tests on load if requested
+        if (window.location.hash === '#autorun') {
+            window.addEventListener('load', () => {
+                setTimeout(runAllTests, 1000);
+            });
+        }
+    </script>
+</body>
+</html>
