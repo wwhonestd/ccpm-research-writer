@@ -4,7 +4,7 @@ status: backlog
 created: 2025-09-09T13:10:20Z
 progress: 0%
 prd: .claude/prds/research-writer.md
-github: [Will be updated when synced to GitHub]
+github: https://github.com/wwhonestd/ccpm-research-writer/issues/1
 ---
 
 # Epic: Research Writer
