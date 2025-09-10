@@ -1,0 +1,971 @@
+/**
+ * Literature Management Module CSS
+ * Styling for literature organization, citation management, and research tools
+ * Follows research-writer foundation design patterns and WCAG 2.1 AA standards
+ */
+
+/* ===== LITERATURE CONTAINER ===== */
+.literature-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--space-6);
+    background: var(--gray-50);
+    min-height: calc(100vh - 200px);
+}
+
+.literature-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-8);
+    flex-wrap: wrap;
+    gap: var(--space-4);
+}
+
+.literature-title {
+    margin: 0;
+    font-size: var(--text-3xl);
+    font-weight: 700;
+    color: var(--gray-900);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.literature-stats {
+    display: flex;
+    gap: var(--space-6);
+    background: white;
+    padding: var(--space-4);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-200);
+}
+
+.stat-item {
+    text-align: center;
+    padding: var(--space-2) var(--space-4);
+}
+
+.stat-number {
+    display: block;
+    font-size: var(--text-2xl);
+    font-weight: 700;
+    color: var(--primary-600);
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: var(--text-sm);
+    color: var(--gray-600);
+    margin-top: var(--space-1);
+}
+
+/* ===== LITERATURE TOOLBAR ===== */
+.literature-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-6);
+    padding: var(--space-4);
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-200);
+    flex-wrap: wrap;
+    gap: var(--space-4);
+}
+
+.toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    flex: 1;
+}
+
+.toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.search-container {
+    position: relative;
+    flex: 1;
+    max-width: 400px;
+}
+
+.search-input {
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    padding-left: var(--space-10);
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    font-size: var(--text-base);
+    background: white;
+    transition: all var(--transition-fast);
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 3px var(--primary-100);
+}
+
+.search-icon {
+    position: absolute;
+    left: var(--space-3);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gray-400);
+    font-size: var(--text-lg);
+    pointer-events: none;
+}
+
+.filter-dropdown {
+    position: relative;
+}
+
+.filter-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    background: white;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    color: var(--gray-700);
+    font-size: var(--text-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    min-height: 44px;
+}
+
+.filter-btn:hover {
+    background: var(--gray-50);
+    border-color: var(--gray-400);
+}
+
+.filter-btn:focus {
+    outline: 2px solid var(--primary-600);
+    outline-offset: 2px;
+}
+
+.filter-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: var(--space-1);
+    min-width: 200px;
+    background: white;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+    display: none;
+    padding: var(--space-2);
+}
+
+.filter-menu.active {
+    display: block;
+}
+
+.filter-option {
+    display: flex;
+    align-items: center;
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+    font-size: var(--text-sm);
+}
+
+.filter-option:hover {
+    background: var(--gray-100);
+}
+
+.filter-option input[type="checkbox"] {
+    margin-right: var(--space-2);
+    width: 16px;
+    height: 16px;
+}
+
+/* ===== ACTION BUTTONS ===== */
+.action-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-decoration: none;
+    min-height: 44px;
+}
+
+.action-btn:focus {
+    outline: 2px solid var(--primary-600);
+    outline-offset: 2px;
+}
+
+.btn-import {
+    background: var(--success);
+    color: white;
+    border-color: var(--success);
+}
+
+.btn-import:hover:not(:disabled) {
+    background: #059669;
+    border-color: #059669;
+}
+
+.btn-export {
+    background: var(--primary-600);
+    color: white;
+    border-color: var(--primary-600);
+}
+
+.btn-export:hover:not(:disabled) {
+    background: var(--primary-700);
+    border-color: var(--primary-700);
+}
+
+.btn-add {
+    background: var(--primary-600);
+    color: white;
+    border-color: var(--primary-600);
+}
+
+.btn-add:hover:not(:disabled) {
+    background: var(--primary-700);
+    border-color: var(--primary-700);
+}
+
+/* ===== LITERATURE GRID ===== */
+.literature-grid {
+    display: grid;
+    gap: var(--space-6);
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+}
+
+.citation-card {
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-base);
+    position: relative;
+    cursor: pointer;
+}
+
+.citation-card:hover {
+    border-color: var(--primary-300);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.citation-card.selected {
+    border-color: var(--primary-500);
+    background: var(--primary-50);
+}
+
+/* ===== CITATION CONTENT ===== */
+.citation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-4);
+}
+
+.citation-title {
+    font-size: var(--text-lg);
+    font-weight: 600;
+    color: var(--gray-900);
+    line-height: 1.4;
+    margin: 0 var(--space-4) 0 0;
+    flex: 1;
+}
+
+.citation-type {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-1) var(--space-2);
+    background: var(--gray-100);
+    color: var(--gray-700);
+    font-size: var(--text-xs);
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    flex-shrink: 0;
+}
+
+.citation-type.article { background: var(--primary-100); color: var(--primary-700); }
+.citation-type.book { background: var(--success-100, #d1fae5); color: var(--success-700, #047857); }
+.citation-type.conference { background: var(--warning-100, #fef3c7); color: var(--warning-700, #92400e); }
+.citation-type.thesis { background: var(--purple-100, #e9d5ff); color: var(--purple-700, #7c3aed); }
+.citation-type.website { background: var(--gray-100); color: var(--gray-700); }
+
+.citation-authors {
+    font-size: var(--text-sm);
+    color: var(--gray-600);
+    margin-bottom: var(--space-2);
+    line-height: 1.4;
+}
+
+.citation-publication {
+    font-size: var(--text-sm);
+    color: var(--gray-700);
+    font-style: italic;
+    margin-bottom: var(--space-3);
+}
+
+.citation-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: var(--text-sm);
+    color: var(--gray-500);
+    margin-bottom: var(--space-4);
+}
+
+.citation-year {
+    font-weight: 500;
+}
+
+.citation-source {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-size: var(--text-xs);
+    color: var(--gray-400);
+}
+
+/* ===== CITATION ACTIONS ===== */
+.citation-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--gray-200);
+}
+
+.citation-metrics {
+    display: flex;
+    gap: var(--space-4);
+    font-size: var(--text-xs);
+    color: var(--gray-500);
+}
+
+.metric-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+.citation-tools {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.tool-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    color: var(--gray-500);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.tool-btn:hover {
+    background: var(--gray-100);
+    color: var(--gray-700);
+}
+
+.tool-btn:focus {
+    outline: 2px solid var(--primary-600);
+    outline-offset: 1px;
+}
+
+/* ===== FORMAT STYLES ===== */
+.formatted-citation {
+    font-size: var(--text-sm);
+    line-height: 1.6;
+    color: var(--gray-700);
+    background: var(--gray-50);
+    padding: var(--space-3);
+    border-radius: var(--radius-md);
+    border-left: 3px solid var(--primary-500);
+    margin: var(--space-4) 0;
+}
+
+.formatted-citation em {
+    font-style: italic;
+}
+
+.formatted-citation strong {
+    font-weight: 600;
+}
+
+/* ===== IMPORT/EXPORT MODAL ===== */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all var(--transition-base);
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal {
+    background: white;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    max-width: 600px;
+    width: 90vw;
+    max-height: 90vh;
+    overflow: hidden;
+    transform: scale(0.9);
+    transition: transform var(--transition-base);
+}
+
+.modal-overlay.active .modal {
+    transform: scale(1);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-6) var(--space-6) var(--space-4);
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.modal-title {
+    margin: 0;
+    font-size: var(--text-xl);
+    font-weight: 600;
+    color: var(--gray-900);
+}
+
+.modal-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: var(--gray-100);
+    color: var(--gray-500);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.modal-close:hover {
+    background: var(--error-100);
+    color: var(--error-600);
+}
+
+.modal-body {
+    padding: var(--space-6);
+    overflow-y: auto;
+    max-height: 60vh;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-6) var(--space-6);
+    border-top: 1px solid var(--gray-200);
+}
+
+/* ===== FILE UPLOAD AREA ===== */
+.upload-area {
+    border: 2px dashed var(--gray-300);
+    border-radius: var(--radius-lg);
+    padding: var(--space-8);
+    text-align: center;
+    transition: all var(--transition-fast);
+    cursor: pointer;
+    background: var(--gray-50);
+}
+
+.upload-area:hover,
+.upload-area.dragover {
+    border-color: var(--primary-400);
+    background: var(--primary-50);
+}
+
+.upload-icon {
+    font-size: var(--text-4xl);
+    color: var(--gray-400);
+    margin-bottom: var(--space-4);
+}
+
+.upload-text {
+    font-size: var(--text-lg);
+    color: var(--gray-700);
+    margin-bottom: var(--space-2);
+}
+
+.upload-hint {
+    font-size: var(--text-sm);
+    color: var(--gray-500);
+}
+
+.file-input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
+/* ===== PROGRESS INDICATORS ===== */
+.progress-container {
+    margin: var(--space-4) 0;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: var(--gray-200);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--primary-600);
+    border-radius: var(--radius-sm);
+    transition: width var(--transition-base);
+}
+
+.progress-text {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: var(--space-2);
+    font-size: var(--text-sm);
+    color: var(--gray-600);
+}
+
+/* ===== CITATION STYLE SELECTOR ===== */
+.style-selector {
+    display: flex;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+}
+
+.style-btn {
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    border: 1px solid var(--gray-300);
+    background: white;
+    color: var(--gray-700);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.style-btn:hover {
+    background: var(--gray-50);
+    border-color: var(--gray-400);
+}
+
+.style-btn.active {
+    background: var(--primary-600);
+    color: white;
+    border-color: var(--primary-600);
+}
+
+.style-btn:focus {
+    outline: 2px solid var(--primary-600);
+    outline-offset: 2px;
+}
+
+/* ===== LOADING STATES ===== */
+.literature-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-16);
+    text-align: center;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--gray-300);
+    border-top: 3px solid var(--primary-600);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: var(--space-4);
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.loading-text {
+    font-size: var(--text-lg);
+    color: var(--gray-600);
+    margin-bottom: var(--space-2);
+}
+
+.loading-hint {
+    font-size: var(--text-sm);
+    color: var(--gray-500);
+}
+
+/* ===== EMPTY STATE ===== */
+.literature-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-16);
+    text-align: center;
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.empty-icon {
+    font-size: 4rem;
+    color: var(--gray-300);
+    margin-bottom: var(--space-4);
+}
+
+.empty-title {
+    font-size: var(--text-xl);
+    font-weight: 600;
+    color: var(--gray-700);
+    margin-bottom: var(--space-2);
+}
+
+.empty-text {
+    font-size: var(--text-base);
+    color: var(--gray-500);
+    margin-bottom: var(--space-6);
+    max-width: 400px;
+    line-height: 1.6;
+}
+
+/* ===== TOAST NOTIFICATIONS ===== */
+.toast-container {
+    position: fixed;
+    top: var(--space-6);
+    right: var(--space-6);
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.toast {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-5);
+    background: white;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    min-width: 300px;
+    max-width: 400px;
+    transform: translateX(100%);
+    animation: slideInToast 0.3s ease-out forwards;
+}
+
+@keyframes slideInToast {
+    to {
+        transform: translateX(0);
+    }
+}
+
+.toast.success {
+    border-color: var(--success);
+    background: var(--success-50, #ecfdf5);
+}
+
+.toast.error {
+    border-color: var(--error);
+    background: var(--error-50, #fef2f2);
+}
+
+.toast.warning {
+    border-color: var(--warning);
+    background: var(--warning-50, #fffbeb);
+}
+
+.toast-icon {
+    font-size: var(--text-lg);
+    flex-shrink: 0;
+}
+
+.toast.success .toast-icon {
+    color: var(--success);
+}
+
+.toast.error .toast-icon {
+    color: var(--error);
+}
+
+.toast.warning .toast-icon {
+    color: var(--warning);
+}
+
+.toast-content {
+    flex: 1;
+}
+
+.toast-title {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: var(--space-1);
+}
+
+.toast-message {
+    font-size: var(--text-sm);
+    color: var(--gray-600);
+    line-height: 1.4;
+}
+
+.toast-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border: none;
+    background: transparent;
+    color: var(--gray-400);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: color var(--transition-fast);
+}
+
+.toast-close:hover {
+    color: var(--gray-600);
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 1024px) {
+    .literature-grid {
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .literature-container {
+        padding: var(--space-4);
+    }
+    
+    .literature-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--space-4);
+    }
+    
+    .literature-stats {
+        justify-content: space-around;
+        gap: var(--space-4);
+    }
+    
+    .literature-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--space-4);
+    }
+    
+    .toolbar-left {
+        flex-direction: column;
+        gap: var(--space-3);
+    }
+    
+    .toolbar-right {
+        justify-content: space-between;
+    }
+    
+    .search-container {
+        max-width: none;
+    }
+    
+    .literature-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-4);
+    }
+    
+    .citation-card {
+        padding: var(--space-4);
+    }
+    
+    .citation-actions {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--space-3);
+    }
+    
+    .citation-metrics {
+        justify-content: center;
+    }
+    
+    .citation-tools {
+        justify-content: center;
+    }
+    
+    .modal {
+        width: 95vw;
+        max-height: 95vh;
+    }
+    
+    .toast-container {
+        top: var(--space-4);
+        right: var(--space-4);
+        left: var(--space-4);
+    }
+    
+    .toast {
+        min-width: auto;
+        max-width: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .literature-container {
+        padding: var(--space-2);
+    }
+    
+    .literature-title {
+        font-size: var(--text-2xl);
+    }
+    
+    .citation-card {
+        padding: var(--space-3);
+    }
+    
+    .citation-title {
+        font-size: var(--text-base);
+    }
+    
+    .stat-item {
+        padding: var(--space-2);
+    }
+    
+    .stat-number {
+        font-size: var(--text-xl);
+    }
+    
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+        padding: var(--space-4);
+    }
+}
+
+/* ===== ACCESSIBILITY ENHANCEMENTS ===== */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .modal {
+        transform: none !important;
+    }
+    
+    .toast {
+        transform: none !important;
+        animation: none !important;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .citation-card {
+        border-width: 2px;
+    }
+    
+    .citation-card:hover,
+    .citation-card.selected {
+        border-width: 3px;
+    }
+    
+    .tool-btn:focus,
+    .action-btn:focus,
+    .filter-btn:focus {
+        outline-width: 3px;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .literature-container {
+        background: var(--gray-900);
+    }
+    
+    .citation-card,
+    .literature-stats,
+    .literature-toolbar,
+    .modal {
+        background: var(--gray-800);
+        border-color: var(--gray-600);
+        color: var(--gray-100);
+    }
+    
+    .search-input,
+    .filter-btn {
+        background: var(--gray-700);
+        border-color: var(--gray-600);
+        color: var(--gray-100);
+    }
+    
+    .formatted-citation {
+        background: var(--gray-700);
+        color: var(--gray-200);
+    }
+    
+    .upload-area {
+        background: var(--gray-700);
+        border-color: var(--gray-600);
+    }
+    
+    .upload-area:hover,
+    .upload-area.dragover {
+        background: var(--gray-600);
+    }
+}
