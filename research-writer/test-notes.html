@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Note System Test</title>
+    <style>
+        :root {
+            --color-primary: #3b82f6;
+            --color-surface: #ffffff;
+            --color-surface-alt: #f9fafb;
+            --color-surface-hover: #f3f4f6;
+            --color-text: #374151;
+            --color-text-muted: #6b7280;
+            --color-border: #e5e7eb;
+            --color-border-hover: #d1d5db;
+            --color-success: #059669;
+            --color-warning: #d97706;
+            --color-error: #dc2626;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+        }
+        
+        .test-section h3 {
+            margin: 0 0 15px 0;
+            color: var(--color-primary);
+        }
+        
+        .test-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+            background: var(--color-surface);
+            color: var(--color-text);
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn:hover {
+            background: var(--color-surface-hover);
+        }
+        
+        .btn-primary {
+            background: var(--color-primary);
+            color: white;
+            border-color: var(--color-primary);
+        }
+        
+        .test-output {
+            background: var(--color-surface-alt);
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .editor-container {
+            height: 500px;
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+        }
+        
+        .performance-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .perf-metric {
+            padding: 10px;
+            background: var(--color-surface-alt);
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        .perf-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--color-primary);
+        }
+        
+        .perf-label {
+            font-size: 12px;
+            color: var(--color-text-muted);
+            margin-top: 5px;
+        }
+    </style>
+    <link rel="stylesheet" href="./css/modules/research/notes.css">
+</head>
+<body>
+    <div class="test-container">
+        <h1>Research Writer Note System Test</h1>
+        
+        <div class="test-section">
+            <h3>1. Note Manager Test</h3>
+            <div class="test-controls">
+                <button class="btn btn-primary" id="test-note-manager">Test Note Manager</button>
+                <button class="btn" id="create-sample-notes">Create Sample Notes</button>
+                <button class="btn" id="test-search">Test Search Performance</button>
+                <button class="btn" id="clear-notes">Clear All Notes</button>
+            </div>
+            <div class="test-output" id="note-manager-output"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>2. Tag Manager Test</h3>
+            <div class="test-controls">
+                <button class="btn btn-primary" id="test-tag-manager">Test Tag Manager</button>
+                <button class="btn" id="create-sample-tags">Create Sample Tags</button>
+                <button class="btn" id="test-tag-analytics">Test Tag Analytics</button>
+                <button class="btn" id="clear-tags">Clear All Tags</button>
+            </div>
+            <div class="test-output" id="tag-manager-output"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>3. Note Editor Test</h3>
+            <div class="test-controls">
+                <button class="btn btn-primary" id="create-editor">Create Note Editor</button>
+                <button class="btn" id="load-sample-note">Load Sample Note</button>
+                <button class="btn" id="toggle-preview">Toggle Preview</button>
+                <button class="btn" id="destroy-editor">Destroy Editor</button>
+            </div>
+            <div class="editor-container" id="editor-container"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>4. Performance Results</h3>
+            <div class="performance-results" id="performance-results">
+                <div class="perf-metric">
+                    <div class="perf-value" id="search-time">-</div>
+                    <div class="perf-label">Search Time (ms)</div>
+                </div>
+                <div class="perf-metric">
+                    <div class="perf-value" id="notes-count">0</div>
+                    <div class="perf-label">Total Notes</div>
+                </div>
+                <div class="perf-metric">
+                    <div class="perf-value" id="tags-count">0</div>
+                    <div class="perf-label">Total Tags</div>
+                </div>
+                <div class="perf-metric">
+                    <div class="perf-value" id="performance-status">✅</div>
+                    <div class="perf-label">Performance Target</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { NoteManager } from './js/modules/research/NoteManager.js';
+        import { TagManager } from './js/components/research/TagManager.js';
+        import { NoteEditor } from './js/components/research/NoteEditor.js';
+
+        // Test instances
+        let noteManager, tagManager, noteEditor;
+        
+        // Output helpers
+        function output(elementId, text) {
+            const element = document.getElementById(elementId);
+            element.textContent += text + '\n';
+            element.scrollTop = element.scrollHeight;
+        }
+        
+        function clearOutput(elementId) {
+            document.getElementById(elementId).textContent = '';
+        }
+
+        // Initialize test system
+        async function initializeTests() {
+            try {
+                noteManager = new NoteManager();
+                tagManager = new TagManager(noteManager);
+                
+                output('note-manager-output', 'Test system initialized successfully');
+                updatePerformanceMetrics();
+            } catch (error) {
+                output('note-manager-output', 'Failed to initialize: ' + error.message);
+            }
+        }
+
+        // Update performance metrics
+        async function updatePerformanceMetrics() {
+            try {
+                const notes = await noteManager.listNotes();
+                const tags = tagManager.getAllTags();
+                
+                document.getElementById('notes-count').textContent = notes.length;
+                document.getElementById('tags-count').textContent = tags.length;
+            } catch (error) {
+                console.error('Failed to update metrics:', error);
+            }
+        }
+
+        // Test Note Manager
+        document.getElementById('test-note-manager').addEventListener('click', async () => {
+            clearOutput('note-manager-output');
+            output('note-manager-output', 'Testing Note Manager...');
+            
+            try {
+                // Test CRUD operations
+                const note = await noteManager.createNote({
+                    title: 'Test Note',
+                    content: 'This is a test note content',
+                    type: 'general',
+                    tags: ['test', 'sample']
+                });
+                
+                output('note-manager-output', `✅ Created note: ${note.title} (ID: ${note.id})`);
+                
+                // Test retrieval
+                const retrieved = await noteManager.getNote(note.id);
+                output('note-manager-output', `✅ Retrieved note: ${retrieved.title}`);
+                
+                // Test update
+                const updated = await noteManager.updateNote(note.id, {
+                    content: 'Updated content'
+                });
+                output('note-manager-output', `✅ Updated note content`);
+                
+                // Test search
+                const searchResults = await noteManager.searchNotes('test');
+                output('note-manager-output', `✅ Search found ${searchResults.notes.length} notes`);
+                
+                updatePerformanceMetrics();
+            } catch (error) {
+                output('note-manager-output', `❌ Error: ${error.message}`);
+            }
+        });
+
+        // Create sample notes
+        document.getElementById('create-sample-notes').addEventListener('click', async () => {
+            clearOutput('note-manager-output');
+            output('note-manager-output', 'Creating sample notes...');
+            
+            const sampleNotes = [
+                {
+                    title: 'Research Methodology',
+                    content: 'Qualitative research methods focus on understanding phenomena through detailed observation and analysis.',
+                    type: 'summary',
+                    category: 'methodology',
+                    tags: ['research', 'methodology', 'qualitative']
+                },
+                {
+                    title: 'Data Analysis Techniques',
+                    content: 'Statistical analysis reveals patterns and relationships in large datasets.',
+                    type: 'analysis',
+                    category: 'data-science',
+                    tags: ['data', 'statistics', 'analysis']
+                },
+                {
+                    title: 'Literature Review Notes',
+                    content: 'Key findings from recent studies on machine learning applications.',
+                    type: 'summary',
+                    category: 'literature',
+                    tags: ['literature', 'machine-learning', 'ai']
+                },
+                {
+                    title: 'Research Question',
+                    content: 'How do modern visualization techniques improve data comprehension?',
+                    type: 'question',
+                    category: 'research',
+                    tags: ['visualization', 'comprehension', 'question']
+                },
+                {
+                    title: 'Project Ideas',
+                    content: 'Develop an interactive dashboard for research data visualization.',
+                    type: 'idea',
+                    category: 'projects',
+                    tags: ['dashboard', 'visualization', 'project']
+                }
+            ];
+            
+            try {
+                for (const noteData of sampleNotes) {
+                    await noteManager.createNote(noteData);
+                    output('note-manager-output', `✅ Created: ${noteData.title}`);
+                }
+                
+                updatePerformanceMetrics();
+            } catch (error) {
+                output('note-manager-output', `❌ Error: ${error.message}`);
+            }
+        });
+
+        // Test search performance
+        document.getElementById('test-search').addEventListener('click', async () => {
+            clearOutput('note-manager-output');
+            output('note-manager-output', 'Testing search performance...');
+            
+            try {
+                const queries = ['research', 'data', 'analysis', 'machine learning', 'visualization'];
+                let totalTime = 0;
+                
+                for (const query of queries) {
+                    const startTime = performance.now();
+                    const results = await noteManager.searchNotes(query);
+                    const endTime = performance.now();
+                    const searchTime = endTime - startTime;
+                    totalTime += searchTime;
+                    
+                    output('note-manager-output', 
+                        `Query: "${query}" - ${results.notes.length} results in ${searchTime.toFixed(2)}ms`);
+                }
+                
+                const avgTime = totalTime / queries.length;
+                const performanceTarget = avgTime < 300;
+                
+                document.getElementById('search-time').textContent = avgTime.toFixed(2);
+                document.getElementById('performance-status').textContent = performanceTarget ? '✅' : '❌';
+                
+                output('note-manager-output', 
+                    `Average search time: ${avgTime.toFixed(2)}ms ${performanceTarget ? '(✅ Under 300ms target)' : '(❌ Over 300ms target)'}`);
+                    
+            } catch (error) {
+                output('note-manager-output', `❌ Error: ${error.message}`);
+            }
+        });
+
+        // Test Tag Manager
+        document.getElementById('test-tag-manager').addEventListener('click', async () => {
+            clearOutput('tag-manager-output');
+            output('tag-manager-output', 'Testing Tag Manager...');
+            
+            try {
+                await tagManager.refreshTagCache();
+                
+                const allTags = tagManager.getAllTags();
+                output('tag-manager-output', `✅ Found ${allTags.length} tags: ${allTags.join(', ')}`);
+                
+                // Test tag suggestions
+                const suggestions = tagManager.getTagSuggestions('res');
+                output('tag-manager-output', `✅ Suggestions for "res": ${suggestions.map(s => s.name).join(', ')}`);
+                
+                // Test tag analytics
+                const analytics = tagManager.getAnalytics();
+                output('tag-manager-output', `✅ Analytics: ${analytics.totalTags} tags, ${analytics.totalUsage} total usage`);
+                
+                updatePerformanceMetrics();
+            } catch (error) {
+                output('tag-manager-output', `❌ Error: ${error.message}`);
+            }
+        });
+
+        // Create Note Editor
+        document.getElementById('create-editor').addEventListener('click', () => {
+            const container = document.getElementById('editor-container');
+            container.innerHTML = '';
+            
+            noteEditor = new NoteEditor(container, noteManager, {
+                autosave: false,
+                showPreview: false,
+                onSave: (savedNote) => {
+                    alert(`Note saved: ${savedNote.title}`);
+                    updatePerformanceMetrics();
+                },
+                onCancel: () => {
+                    alert('Editing cancelled');
+                }
+            });
+            
+            console.log('Note editor created');
+        });
+
+        // Load sample note
+        document.getElementById('load-sample-note').addEventListener('click', async () => {
+            if (!noteEditor) {
+                alert('Create an editor first');
+                return;
+            }
+            
+            try {
+                const notes = await noteManager.listNotes();
+                if (notes.length > 0) {
+                    noteEditor.loadNote(notes[0]);
+                    console.log('Loaded sample note');
+                } else {
+                    alert('No notes available. Create some sample notes first.');
+                }
+            } catch (error) {
+                alert('Error loading note: ' + error.message);
+            }
+        });
+
+        // Clear all notes
+        document.getElementById('clear-notes').addEventListener('click', async () => {
+            if (confirm('Clear all notes?')) {
+                try {
+                    const notes = await noteManager.listNotes();
+                    for (const note of notes) {
+                        await noteManager.deleteNote(note.id, true);
+                    }
+                    output('note-manager-output', 'All notes cleared');
+                    updatePerformanceMetrics();
+                } catch (error) {
+                    output('note-manager-output', `❌ Error: ${error.message}`);
+                }
+            }
+        });
+
+        // Initialize tests on load
+        initializeTests();
+    </script>
+</body>
+</html>

@@ -9,6 +9,9 @@ class ResearchWriterApp {
         this.modules = ['welcome', 'search', 'collect', 'organize', 'write', 'export'];
         this.isInitialized = false;
         
+        // Module controllers
+        this.moduleControllers = new Map();
+        
         // Bind methods to preserve context
         this.handleNavigation = this.handleNavigation.bind(this);
         this.handleKeyboard = this.handleKeyboard.bind(this);
@@ -221,6 +224,9 @@ class ResearchWriterApp {
             if (moduleTitle) {
                 document.title = `${moduleTitle.textContent} - Research Writer`;
             }
+            
+            // Initialize module controller if needed
+            this.initializeModuleController(moduleId);
             
             // Focus management
             this.manageFocus(targetModule);
@@ -439,9 +445,52 @@ class ResearchWriterApp {
     }
     
     /**
+     * Initialize module controller if needed
+     */
+    async initializeModuleController(moduleId) {
+        // Only initialize controllers that haven't been created yet
+        if (this.moduleControllers.has(moduleId)) {
+            return;
+        }
+
+        try {
+            switch (moduleId) {
+                case 'organize':
+                    // Dynamically import the OrganizeController
+                    const { OrganizeController } = await import('./controllers/OrganizeController.js');
+                    const organizeController = new OrganizeController();
+                    this.moduleControllers.set(moduleId, organizeController);
+                    console.log('OrganizeController initialized');
+                    break;
+                    
+                // Add other module controllers here as they're implemented
+                case 'search':
+                case 'collect':
+                case 'write':
+                case 'export':
+                    // Placeholder for future module controllers
+                    console.log(`${moduleId} module controller not yet implemented`);
+                    break;
+            }
+        } catch (error) {
+            console.error(`Failed to initialize ${moduleId} controller:`, error);
+            this.handleError(`Failed to load ${moduleId} module`, error);
+        }
+    }
+
+    /**
      * Cleanup method for destroying the app instance
      */
     destroy() {
+        // Clean up module controllers
+        this.moduleControllers.forEach((controller, moduleId) => {
+            if (controller && typeof controller.destroy === 'function') {
+                controller.destroy();
+                console.log(`${moduleId} controller destroyed`);
+            }
+        });
+        this.moduleControllers.clear();
+        
         // Remove event listeners
         const navLinks = document.querySelectorAll('.nav-link');
         navLinks.forEach(link => {

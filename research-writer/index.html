@@ -17,6 +17,8 @@
     <!-- Styles -->
     <link rel="stylesheet" href="./css/main.css">
     <link rel="stylesheet" href="./css/layout.css">
+    <link rel="stylesheet" href="./css/modules/organize.css">
+    <link rel="stylesheet" href="./css/modules/research/notes.css">
     
     <title>Research Writer</title>
 </head>
@@ -130,11 +132,216 @@
                 
                 <div class="module organize-module hidden" id="organize-module" data-module="organize">
                     <header class="module-header">
-                        <h2>Organize Module</h2>
-                        <p class="module-description">Organization and categorization tools</p>
+                        <h2>Organize Notes</h2>
+                        <p class="module-description">Create, edit, and organize your research notes with intelligent tagging and categorization</p>
                     </header>
                     <div class="module-content">
-                        <p>Organize module content will be implemented here.</p>
+                        <div class="organize-container">
+                            <!-- Navigation Tabs -->
+                            <div class="organize-tabs" role="tablist" aria-label="Organization tools">
+                                <button class="tab-btn active" 
+                                        role="tab" 
+                                        aria-selected="true" 
+                                        aria-controls="notes-panel"
+                                        data-tab="notes"
+                                        id="notes-tab">
+                                    📝 Notes
+                                </button>
+                                <button class="tab-btn" 
+                                        role="tab" 
+                                        aria-selected="false" 
+                                        aria-controls="tags-panel"
+                                        data-tab="tags"
+                                        id="tags-tab">
+                                    🏷️ Tags
+                                </button>
+                                <button class="tab-btn" 
+                                        role="tab" 
+                                        aria-selected="false" 
+                                        aria-controls="analytics-panel"
+                                        data-tab="analytics"
+                                        id="analytics-tab">
+                                    📊 Analytics
+                                </button>
+                            </div>
+
+                            <!-- Notes Panel -->
+                            <div class="tab-panel active" 
+                                 role="tabpanel" 
+                                 aria-labelledby="notes-tab"
+                                 id="notes-panel">
+                                <div class="notes-view">
+                                    <div class="notes-sidebar">
+                                        <div class="notes-container">
+                                            <!-- Notes Header -->
+                                            <div class="notes-header">
+                                                <div class="notes-search">
+                                                    <input type="text" 
+                                                           placeholder="Search notes..." 
+                                                           class="search-input"
+                                                           aria-label="Search notes">
+                                                    <button class="search-btn" aria-label="Search">🔍</button>
+                                                </div>
+                                                <div class="notes-actions">
+                                                    <button class="btn btn-primary new-note-btn" aria-label="Create new note">
+                                                        ➕ New Note
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <!-- Notes Filters -->
+                                            <div class="notes-filters">
+                                                <select class="filter-select" aria-label="Filter by type">
+                                                    <option value="">All Types</option>
+                                                    <option value="general">General</option>
+                                                    <option value="quote">Quote</option>
+                                                    <option value="summary">Summary</option>
+                                                    <option value="analysis">Analysis</option>
+                                                    <option value="idea">Idea</option>
+                                                    <option value="todo">To-Do</option>
+                                                    <option value="question">Question</option>
+                                                </select>
+                                                <select class="filter-select" aria-label="Filter by category">
+                                                    <option value="">All Categories</option>
+                                                </select>
+                                                <select class="filter-select" aria-label="Sort notes">
+                                                    <option value="updated-desc">Recently Updated</option>
+                                                    <option value="created-desc">Recently Created</option>
+                                                    <option value="title-asc">Title A-Z</option>
+                                                    <option value="title-desc">Title Z-A</option>
+                                                </select>
+                                            </div>
+
+                                            <!-- Notes List -->
+                                            <div class="notes-list" role="list" aria-label="Notes list">
+                                                <div class="empty-state">
+                                                    <div class="empty-icon">📝</div>
+                                                    <h3>No notes yet</h3>
+                                                    <p>Create your first note to start organizing your research.</p>
+                                                    <button class="btn btn-primary create-first-note-btn">Create Note</button>
+                                                </div>
+                                            </div>
+
+                                            <!-- Notes Pagination -->
+                                            <div class="notes-pagination hidden">
+                                                <button class="btn btn-secondary prev-btn" disabled>← Previous</button>
+                                                <span class="pagination-info">Page 1 of 1</span>
+                                                <button class="btn btn-secondary next-btn" disabled>Next →</button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="notes-main">
+                                        <div class="note-editor-container">
+                                            <div class="editor-placeholder">
+                                                <div class="placeholder-content">
+                                                    <div class="placeholder-icon">✍️</div>
+                                                    <h3>Select a note to edit</h3>
+                                                    <p>Choose an existing note from the sidebar or create a new one to start writing.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tags Panel -->
+                            <div class="tab-panel" 
+                                 role="tabpanel" 
+                                 aria-labelledby="tags-tab"
+                                 id="tags-panel">
+                                <div class="tag-manager">
+                                    <div class="tag-manager-header">
+                                        <div class="tag-search">
+                                            <input type="text" 
+                                                   placeholder="Search tags..." 
+                                                   class="tag-search-input"
+                                                   aria-label="Search tags">
+                                        </div>
+                                        <div class="tag-actions">
+                                            <button class="btn btn-secondary import-tags-btn" aria-label="Import tags">
+                                                📥 Import
+                                            </button>
+                                            <button class="btn btn-secondary export-tags-btn" aria-label="Export tags">
+                                                📤 Export
+                                            </button>
+                                            <button class="btn btn-primary new-tag-btn" aria-label="Create new tag">
+                                                ➕ New Tag
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="tag-stats">
+                                        <div class="stat-card">
+                                            <div class="stat-value" id="total-tags">0</div>
+                                            <div class="stat-label">Total Tags</div>
+                                        </div>
+                                        <div class="stat-card">
+                                            <div class="stat-value" id="tags-usage">0</div>
+                                            <div class="stat-label">Total Usage</div>
+                                        </div>
+                                        <div class="stat-card">
+                                            <div class="stat-value" id="avg-usage">0</div>
+                                            <div class="stat-label">Avg. Usage</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="tag-list" role="list" aria-label="Tags list">
+                                        <div class="empty-state">
+                                            <div class="empty-icon">🏷️</div>
+                                            <h3>No tags yet</h3>
+                                            <p>Tags will appear here as you add them to your notes.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Analytics Panel -->
+                            <div class="tab-panel" 
+                                 role="tabpanel" 
+                                 aria-labelledby="analytics-tab"
+                                 id="analytics-panel">
+                                <div class="analytics-container">
+                                    <div class="analytics-overview">
+                                        <h3>Research Overview</h3>
+                                        <div class="overview-stats">
+                                            <div class="stat-card">
+                                                <div class="stat-value" id="total-notes">0</div>
+                                                <div class="stat-label">Total Notes</div>
+                                            </div>
+                                            <div class="stat-card">
+                                                <div class="stat-value" id="total-words">0</div>
+                                                <div class="stat-label">Total Words</div>
+                                            </div>
+                                            <div class="stat-card">
+                                                <div class="stat-value" id="avg-words">0</div>
+                                                <div class="stat-label">Avg. Words/Note</div>
+                                            </div>
+                                            <div class="stat-card">
+                                                <div class="stat-value" id="note-types">0</div>
+                                                <div class="stat-label">Note Types</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="analytics-charts">
+                                        <div class="chart-section">
+                                            <h4>Note Types Distribution</h4>
+                                            <div class="chart-placeholder">
+                                                <div class="placeholder-text">Chart will appear here when notes are created</div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="chart-section">
+                                            <h4>Most Used Tags</h4>
+                                            <div class="chart-placeholder">
+                                                <div class="placeholder-text">Tag usage chart will appear here</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
