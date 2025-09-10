@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projects - Research Writer</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/layout.css">
+    <link rel="stylesheet" href="../css/components/forms.css">
+    <link rel="stylesheet" href="../css/components/project-list.css">
+    <link rel="stylesheet" href="../css/components/projects.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="../favicon.ico">
+</head>
+<body>
+    <!-- Navigation Header -->
+    <header class="app-header">
+        <nav class="main-nav">
+            <div class="nav-brand">
+                <a href="../index.html" class="brand-link">
+                    <span class="brand-icon" aria-hidden="true">📝</span>
+                    <span class="brand-text">Research Writer</span>
+                </a>
+            </div>
+            
+            <ul class="nav-menu" role="menubar">
+                <li class="nav-item" role="none">
+                    <a href="../index.html" class="nav-link" role="menuitem">
+                        <span aria-hidden="true">🏠</span> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item active" role="none">
+                    <a href="projects.html" class="nav-link" role="menuitem" aria-current="page">
+                        <span aria-hidden="true">📂</span> Projects
+                    </a>
+                </li>
+                <li class="nav-item" role="none">
+                    <a href="citations.html" class="nav-link" role="menuitem">
+                        <span aria-hidden="true">📚</span> Citations
+                    </a>
+                </li>
+                <li class="nav-item" role="none">
+                    <a href="notes.html" class="nav-link" role="menuitem">
+                        <span aria-hidden="true">📝</span> Notes
+                    </a>
+                </li>
+                <li class="nav-item" role="none">
+                    <a href="drafts.html" class="nav-link" role="menuitem">
+                        <span aria-hidden="true">📄</span> Drafts
+                    </a>
+                </li>
+            </ul>
+            
+            <div class="nav-actions">
+                <button class="nav-action-btn" type="button" title="Settings">
+                    <span aria-hidden="true">⚙️</span>
+                    <span class="sr-only">Settings</span>
+                </button>
+                <button class="nav-action-btn" type="button" title="Help">
+                    <span aria-hidden="true">❓</span>
+                    <span class="sr-only">Help</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="app-main">
+        <div class="page-header">
+            <div class="page-title-section">
+                <h1 class="page-title">
+                    <span class="page-icon" aria-hidden="true">📂</span>
+                    Projects
+                </h1>
+                <p class="page-subtitle">Manage your research projects</p>
+            </div>
+            
+            <div class="page-actions">
+                <button class="btn btn-secondary" id="import-btn" title="Import projects">
+                    <span aria-hidden="true">📁</span> Import
+                </button>
+                <button class="btn btn-secondary" id="export-btn" title="Export projects">
+                    <span aria-hidden="true">📤</span> Export
+                </button>
+                <button class="btn btn-primary" id="new-project-btn" title="Create new project">
+                    <span aria-hidden="true">➕</span> New Project
+                </button>
+            </div>
+        </div>
+
+        <!-- Project Management Container -->
+        <div class="project-management-container">
+            <!-- This will be populated by ProjectController -->
+            <div id="project-controller-container" class="controller-container">
+                <!-- Loading state -->
+                <div class="loading-state">
+                    <div class="loading-spinner" aria-hidden="true">⟳</div>
+                    <p>Loading projects...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+        <div class="footer-content">
+            <div class="footer-info">
+                <span class="app-version">Research Writer v1.0.0</span>
+                <span class="divider">•</span>
+                <span class="storage-info">
+                    <span id="storage-usage">0%</span> storage used
+                </span>
+            </div>
+            
+            <div class="footer-actions">
+                <button class="footer-btn" type="button" title="Backup data">
+                    <span aria-hidden="true">💾</span> Backup
+                </button>
+                <button class="footer-btn" type="button" title="About">
+                    <span aria-hidden="true">ℹ️</span> About
+                </button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Error Toast Container -->
+    <div id="error-toast-container" class="toast-container" aria-live="polite"></div>
+
+    <!-- Loading Overlay (for heavy operations) -->
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="loading-content">
+            <div class="loading-spinner large" aria-hidden="true">⟳</div>
+            <p class="loading-text">Processing...</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="../js/utils/helpers.js"></script>
+    <script type="module" src="../js/utils/validation.js"></script>
+    <script type="module" src="../js/models/Project.js"></script>
+    <script type="module" src="../js/services/StorageService.js"></script>
+    <script type="module" src="../js/components/ProjectManager.js"></script>
+    <script type="module" src="../js/components/ProjectForm.js"></script>
+    <script type="module" src="../js/components/ProjectList.js"></script>
+    <script type="module" src="../js/controllers/ProjectController.js"></script>
+    
+    <!-- Main Application Script -->
+    <script type="module">
+        import { ProjectController } from '../js/controllers/ProjectController.js';
+        import { StorageService } from '../js/services/StorageService.js';
+
+        // Application initialization
+        class ProjectApp {
+            constructor() {
+                this.controller = null;
+                this.storage = null;
+                this.init();
+            }
+
+            async init() {
+                try {
+                    // Initialize storage service for UI updates
+                    this.storage = new StorageService();
+                    
+                    // Initialize project controller
+                    const container = document.getElementById('project-controller-container');
+                    this.controller = new ProjectController(container, {
+                        autoSaveEnabled: true,
+                        autoSaveInterval: 5000,
+                        maxUndoHistory: 20,
+                        enableKeyboardShortcuts: true
+                    });
+
+                    // Set up page-level event handlers
+                    this.setupPageEventHandlers();
+                    
+                    // Update storage info
+                    this.updateStorageInfo();
+                    
+                    // Set up periodic storage info updates
+                    setInterval(() => this.updateStorageInfo(), 30000);
+                    
+                    console.log('Projects page initialized successfully');
+                    
+                } catch (error) {
+                    console.error('Failed to initialize Projects page:', error);
+                    this.showError('Failed to initialize application: ' + error.message);
+                }
+            }
+
+            setupPageEventHandlers() {
+                // Header action buttons
+                const newProjectBtn = document.getElementById('new-project-btn');
+                const importBtn = document.getElementById('import-btn');
+                const exportBtn = document.getElementById('export-btn');
+
+                if (newProjectBtn) {
+                    newProjectBtn.addEventListener('click', () => {
+                        if (this.controller) {
+                            this.controller.showCreateForm();
+                        }
+                    });
+                }
+
+                if (importBtn) {
+                    importBtn.addEventListener('click', () => {
+                        this.handleImport();
+                    });
+                }
+
+                if (exportBtn) {
+                    exportBtn.addEventListener('click', () => {
+                        this.handleExport();
+                    });
+                }
+
+                // Footer actions
+                const backupBtn = document.querySelector('button[title="Backup data"]');
+                const aboutBtn = document.querySelector('button[title="About"]');
+
+                if (backupBtn) {
+                    backupBtn.addEventListener('click', () => {
+                        this.handleBackup();
+                    });
+                }
+
+                if (aboutBtn) {
+                    aboutBtn.addEventListener('click', () => {
+                        this.showAbout();
+                    });
+                }
+
+                // Keyboard shortcuts
+                document.addEventListener('keydown', (e) => {
+                    // Global shortcuts
+                    if (e.ctrlKey || e.metaKey) {
+                        switch (e.key) {
+                            case 'i':
+                                e.preventDefault();
+                                this.handleImport();
+                                break;
+                            case 'e':
+                                e.preventDefault();
+                                this.handleExport();
+                                break;
+                            case 'b':
+                                e.preventDefault();
+                                this.handleBackup();
+                                break;
+                        }
+                    }
+                });
+            }
+
+            async handleImport() {
+                const fileInput = document.createElement('input');
+                fileInput.type = 'file';
+                fileInput.accept = '.json';
+                fileInput.onchange = async (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    this.showLoading('Importing projects...');
+                    
+                    try {
+                        const text = await file.text();
+                        const data = JSON.parse(text);
+                        
+                        if (this.controller && this.controller.projectManager) {
+                            const results = await this.controller.projectManager.importProjects(data);
+                            const message = `Import completed: ${results.imported} imported, ${results.skipped} skipped${results.errors.length > 0 ? `, ${results.errors.length} errors` : ''}`;
+                            this.showToast(message, results.errors.length > 0 ? 'warning' : 'success');
+                            
+                            if (this.controller.currentList) {
+                                await this.controller.currentList.refresh();
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Import error:', error);
+                        this.showToast('Import failed: ' + error.message, 'error');
+                    } finally {
+                        this.hideLoading();
+                    }
+                };
+                
+                fileInput.click();
+            }
+
+            async handleExport() {
+                try {
+                    if (this.controller && this.controller.projectManager) {
+                        this.showLoading('Exporting projects...');
+                        
+                        const projects = this.controller.projectManager.getProjects();
+                        const exportData = this.controller.projectManager.exportProjects(projects, 'json');
+                        
+                        this.downloadFile(exportData.data, exportData.filename, 'application/json');
+                        this.showToast(`${projects.length} projects exported successfully`, 'success');
+                    }
+                } catch (error) {
+                    console.error('Export error:', error);
+                    this.showToast('Export failed: ' + error.message, 'error');
+                } finally {
+                    this.hideLoading();
+                }
+            }
+
+            async handleBackup() {
+                try {
+                    this.showLoading('Creating backup...');
+                    
+                    const backupKey = this.storage.createBackup();
+                    if (backupKey) {
+                        this.showToast('Backup created successfully', 'success');
+                    } else {
+                        this.showToast('Backup creation failed', 'error');
+                    }
+                } catch (error) {
+                    console.error('Backup error:', error);
+                    this.showToast('Backup failed: ' + error.message, 'error');
+                } finally {
+                    this.hideLoading();
+                    this.updateStorageInfo();
+                }
+            }
+
+            showAbout() {
+                const modal = document.createElement('div');
+                modal.className = 'modal-backdrop';
+                modal.innerHTML = `
+                    <div class="modal about-modal">
+                        <div class="modal-header">
+                            <h2>About Research Writer</h2>
+                            <button class="modal-close" aria-label="Close">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="about-content">
+                                <div class="app-logo">📝</div>
+                                <h3>Research Writer v1.0.0</h3>
+                                <p>A comprehensive tool for managing research projects, citations, notes, and drafts.</p>
+                                
+                                <div class="feature-list">
+                                    <h4>Features:</h4>
+                                    <ul>
+                                        <li>Project organization and templates</li>
+                                        <li>Citation management</li>
+                                        <li>Note-taking and organization</li>
+                                        <li>Draft writing and version control</li>
+                                        <li>Auto-save and undo/redo</li>
+                                        <li>Import/export functionality</li>
+                                        <li>Local storage with backup</li>
+                                    </ul>
+                                </div>
+                                
+                                <div class="keyboard-shortcuts">
+                                    <h4>Keyboard Shortcuts:</h4>
+                                    <ul>
+                                        <li><kbd>Ctrl+N</kbd> - New project</li>
+                                        <li><kbd>Ctrl+S</kbd> - Save</li>
+                                        <li><kbd>Ctrl+Z</kbd> - Undo</li>
+                                        <li><kbd>Ctrl+Shift+Z</kbd> - Redo</li>
+                                        <li><kbd>Ctrl+F</kbd> - Focus search</li>
+                                        <li><kbd>Ctrl+I</kbd> - Import</li>
+                                        <li><kbd>Ctrl+E</kbd> - Export</li>
+                                        <li><kbd>Ctrl+B</kbd> - Backup</li>
+                                        <li><kbd>Esc</kbd> - Cancel/Close</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                const closeModal = () => {
+                    document.body.removeChild(modal);
+                };
+
+                modal.querySelector('.modal-close').addEventListener('click', closeModal);
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) closeModal();
+                });
+
+                document.addEventListener('keydown', function escapeHandler(e) {
+                    if (e.key === 'Escape') {
+                        document.removeEventListener('keydown', escapeHandler);
+                        closeModal();
+                    }
+                });
+
+                document.body.appendChild(modal);
+            }
+
+            updateStorageInfo() {
+                if (this.storage) {
+                    const stats = this.storage.getStats();
+                    const usageElement = document.getElementById('storage-usage');
+                    if (usageElement) {
+                        usageElement.textContent = `${Math.round(stats.usedPercent)}%`;
+                        usageElement.className = stats.isNearLimit ? 'storage-warning' : '';
+                    }
+                }
+            }
+
+            showLoading(text = 'Loading...') {
+                const overlay = document.getElementById('loading-overlay');
+                const loadingText = overlay.querySelector('.loading-text');
+                if (loadingText) {
+                    loadingText.textContent = text;
+                }
+                overlay.style.display = 'flex';
+            }
+
+            hideLoading() {
+                const overlay = document.getElementById('loading-overlay');
+                overlay.style.display = 'none';
+            }
+
+            showError(message) {
+                this.showToast(message, 'error');
+            }
+
+            showToast(message, type = 'info') {
+                const container = document.getElementById('error-toast-container');
+                if (!container) return;
+
+                const typeStyles = {
+                    success: { bg: '#dcfce7', border: '#16a34a', text: '#15803d', icon: '✓' },
+                    error: { bg: '#fef2f2', border: '#ef4444', text: '#dc2626', icon: '✕' },
+                    warning: { bg: '#fef3c7', border: '#f59e0b', text: '#d97706', icon: '⚠' },
+                    info: { bg: '#dbeafe', border: '#3b82f6', text: '#2563eb', icon: 'ℹ' }
+                };
+
+                const style = typeStyles[type] || typeStyles.info;
+
+                const toast = document.createElement('div');
+                toast.className = 'toast';
+                toast.style.cssText = `
+                    background: ${style.bg};
+                    border: 1px solid ${style.border};
+                    border-left: 4px solid ${style.border};
+                    color: ${style.text};
+                    padding: 12px 16px;
+                    border-radius: 6px;
+                    margin-bottom: 8px;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    animation: slideIn 0.3s ease-out;
+                `;
+
+                toast.innerHTML = `
+                    <span class="toast-icon">${style.icon}</span>
+                    <span class="toast-message">${this.escapeHtml(message)}</span>
+                    <button class="toast-close" style="
+                        background: none; 
+                        border: none; 
+                        color: inherit; 
+                        font-size: 18px; 
+                        cursor: pointer; 
+                        padding: 0; 
+                        margin-left: auto;
+                    ">&times;</button>
+                `;
+
+                const removeToast = () => {
+                    toast.style.animation = 'slideOut 0.3s ease-in';
+                    setTimeout(() => {
+                        if (toast.parentNode) {
+                            container.removeChild(toast);
+                        }
+                    }, 300);
+                };
+
+                toast.querySelector('.toast-close').addEventListener('click', removeToast);
+                container.appendChild(toast);
+
+                // Auto-remove
+                setTimeout(removeToast, type === 'error' ? 8000 : 5000);
+            }
+
+            downloadFile(data, filename, mimeType) {
+                const blob = new Blob([typeof data === 'string' ? data : JSON.stringify(data, null, 2)], 
+                    { type: mimeType });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        }
+
+        // Initialize the application when DOM is loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                new ProjectApp();
+            });
+        } else {
+            new ProjectApp();
+        }
+    </script>
+
+    <!-- CSS Animations -->
+    <style>
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        .loading-spinner {
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-spinner.large {
+            font-size: 2em;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .storage-warning {
+            color: #f59e0b;
+            font-weight: 600;
+        }
+
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            max-width: 400px;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1001;
+        }
+
+        .loading-content {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 8px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .about-content .app-logo {
+            font-size: 3em;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .about-content h3 {
+            text-align: center;
+            margin-bottom: 16px;
+            color: #1f2937;
+        }
+
+        .feature-list, .keyboard-shortcuts {
+            margin-top: 24px;
+        }
+
+        .feature-list h4, .keyboard-shortcuts h4 {
+            color: #1f2937;
+            margin-bottom: 12px;
+        }
+
+        .feature-list ul, .keyboard-shortcuts ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .feature-list li, .keyboard-shortcuts li {
+            padding: 4px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .keyboard-shortcuts li {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        kbd {
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 12px;
+            font-family: monospace;
+        }
+    </style>
+</body>
+</html>

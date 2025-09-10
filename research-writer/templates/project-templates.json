@@ -1,0 +1,437 @@
+{
+  "templates": {
+    "journal_article": {
+      "name": "Journal Article",
+      "description": "Research project for academic journal publication",
+      "icon": "📰",
+      "category": "academic",
+      "defaults": {
+        "title": "",
+        "description": "",
+        "author": "",
+        "status": "planning",
+        "priority": "medium",
+        "tags": ["journal", "research", "academic"],
+        "customFields": {
+          "targetJournal": "",
+          "wordLimit": 8000,
+          "researchQuestions": [],
+          "methodology": "",
+          "keyPapers": [],
+          "submissionDeadline": ""
+        }
+      },
+      "workflow": [
+        "Literature review",
+        "Research design",
+        "Data collection",
+        "Analysis",
+        "Writing draft",
+        "Peer review",
+        "Submission"
+      ],
+      "requiredSections": [
+        "Abstract",
+        "Introduction",
+        "Literature Review",
+        "Methodology",
+        "Results",
+        "Discussion",
+        "Conclusion",
+        "References"
+      ]
+    },
+    "conference_paper": {
+      "name": "Conference Paper",
+      "description": "Research project for conference presentation",
+      "icon": "🎤",
+      "category": "academic",
+      "defaults": {
+        "title": "",
+        "description": "",
+        "author": "",
+        "status": "planning",
+        "priority": "high",
+        "tags": ["conference", "presentation", "academic"],
+        "customFields": {
+          "conferenceName": "",
+          "conferenceDate": "",
+          "abstractWordLimit": 300,
+          "presentationLength": 20,
+          "conferenceLocation": "",
+          "submissionDeadline": ""
+        }
+      },
+      "workflow": [
+        "Topic selection",
+        "Abstract submission",
+        "Research conduct",
+        "Paper writing",
+        "Presentation preparation",
+        "Conference attendance"
+      ],
+      "requiredSections": [
+        "Abstract",
+        "Introduction",
+        "Main Content",
+        "Conclusion",
+        "References",
+        "Presentation Slides"
+      ]
+    },
+    "thesis_dissertation": {
+      "name": "Thesis/Dissertation",
+      "description": "Long-form academic research project",
+      "icon": "🎓",
+      "category": "academic",
+      "defaults": {
+        "title": "",
+        "description": "",
+        "author": "",
+        "status": "planning",
+        "priority": "urgent",
+        "tags": ["thesis", "dissertation", "academic", "degree"],
+        "customFields": {
+          "degree": "",
+          "university": "",
+          "advisor": "",
+          "committee": [],
+          "defenseDate": "",
+          "wordTarget": 80000,
+          "chapters": []
+        }
+      },
+      "workflow": [
+        "Proposal writing",
+        "Proposal defense",
+        "Literature review",
+        "Methodology design",
+        "Data collection",
+        "Analysis",
+        "Chapter writing",
+        "Thesis defense"
+      ],
+      "requiredSections": [
+        "Title Page",
+        "Abstract",
+        "Table of Contents",
+        "Introduction",
+        "Literature Review",
+        "Methodology",
+        "Results",
+        "Discussion",
+        "Conclusion",
+        "References",
+        "Appendices"
+      ]
+    },
+    "grant_proposal": {
+      "name": "Grant Proposal",
+      "description": "Research funding application",
+      "icon": "💰",
+      "category": "funding",
+      "defaults": {
+        "title": "",
+        "description": "",
+        "author": "",
+        "status": "planning",
+        "priority": "urgent",
+        "tags": ["grant", "funding", "proposal"],
+        "customFields": {
+          "fundingAgency": "",
+          "grantProgram": "",
+          "requestedAmount": 0,
+          "projectDuration": "",
+          "principalInvestigator": "",
+          "collaborators": [],
+          "submissionDeadline": ""
+        }
+      },
+      "workflow": [
+        "Opportunity identification",
+        "Team assembly",
+        "Proposal writing",
+        "Budget preparation",
+        "Review and revision",
+        "Submission"
+      ],
+      "requiredSections": [
+        "Project Summary",
+        "Project Description",
+        "Budget",
+        "Budget Narrative",
+        "Timeline",
+        "Personnel",
+        "Facilities",
+        "References"
+      ]
+    },
+    "systematic_review": {
+      "name": "Systematic Review",
+      "description": "Comprehensive literature analysis",
+      "icon": "📊",
+      "category": "academic",
+      "defaults": {
+        "title": "",
+        "description": "",
+        "author": "",
+        "status": "planning",
+        "priority": "medium",
+        "tags": ["systematic-review", "literature", "meta-analysis"],
+        "customFields": {
+          "researchQuestion": "",
+          "inclusionCriteria": [],
+          "exclusionCriteria": [],
+          "databases": [],
+          "searchTerms": [],
+          "reviewProtocol": "",
+          "prismaCompliant": true
+        }
+      },
+      "workflow": [
+        "Question formulation",
+        "Protocol development",
+        "Search strategy",
+        "Study selection",
+        "Data extraction",
+        "Quality assessment",
+        "Analysis",
+        "Report writing"
+      ],
+      "requiredSections": [
+        "Abstract",
+        "Introduction",
+        "Methods",
+        "Results",
+        "Discussion",
+        "Conclusion",
+        "References",
+        "PRISMA Flowchart"
+      ]
+    },
+    "case_study": {
+      "name": "Case Study",
+      "description": "In-depth analysis of specific cases",
+      "icon": "🔍",
+      "category": "research",
+      "defaults": {
+        "title": "",
+        "description": "",
+        "author": "",
+        "status": "planning",
+        "priority": "medium",
+        "tags": ["case-study", "qualitative", "analysis"],
+        "customFields": {
+          "caseDescription": "",
+          "researchQuestions": [],
+          "dataCollectionMethods": [],
+          "analysisFramework": "",
+          "ethicsApproval": false,
+          "participants": []
+        }
+      },
+      "workflow": [
+        "Case selection",
+        "Research design",
+        "Data collection",
+        "Data analysis",
+        "Pattern identification",
+        "Report writing"
+      ],
+      "requiredSections": [
+        "Introduction",
+        "Case Description",
+        "Methodology",
+        "Analysis",
+        "Findings",
+        "Discussion",
+        "Conclusion",
+        "References"
+      ]
+    },
+    "book_chapter": {
+      "name": "Book Chapter",
+      "description": "Contribution to edited volume",
+      "icon": "📖",
+      "category": "academic",
+      "defaults": {
+        "title": "",
+        "description": "",
+        "author": "",
+        "status": "planning",
+        "priority": "medium",
+        "tags": ["book-chapter", "edited-volume", "academic"],
+        "customFields": {
+          "bookTitle": "",
+          "editors": [],
+          "publisher": "",
+          "wordLimit": 10000,
+          "chapterNumber": 0,
+          "submissionDeadline": ""
+        }
+      },
+      "workflow": [
+        "Topic development",
+        "Outline creation",
+        "Research",
+        "Writing",
+        "Revision",
+        "Submission"
+      ],
+      "requiredSections": [
+        "Introduction",
+        "Main Content",
+        "Conclusion",
+        "References"
+      ]
+    },
+    "research_report": {
+      "name": "Research Report",
+      "description": "Professional research documentation",
+      "icon": "📋",
+      "category": "professional",
+      "defaults": {
+        "title": "",
+        "description": "",
+        "author": "",
+        "status": "planning",
+        "priority": "medium",
+        "tags": ["report", "professional", "research"],
+        "customFields": {
+          "client": "",
+          "reportType": "",
+          "deliveryDate": "",
+          "executiveSummary": "",
+          "keyFindings": [],
+          "recommendations": []
+        }
+      },
+      "workflow": [
+        "Project scoping",
+        "Data collection",
+        "Analysis",
+        "Report drafting",
+        "Review",
+        "Delivery"
+      ],
+      "requiredSections": [
+        "Executive Summary",
+        "Introduction",
+        "Methodology",
+        "Findings",
+        "Recommendations",
+        "Conclusion",
+        "Appendices"
+      ]
+    },
+    "literature_review": {
+      "name": "Literature Review",
+      "description": "Comprehensive review of existing research",
+      "icon": "📚",
+      "category": "academic",
+      "defaults": {
+        "title": "",
+        "description": "",
+        "author": "",
+        "status": "planning",
+        "priority": "medium",
+        "tags": ["literature-review", "academic", "synthesis"],
+        "customFields": {
+          "reviewScope": "",
+          "searchStrategy": "",
+          "inclusionCriteria": [],
+          "thematicFramework": "",
+          "keyThemes": [],
+          "gapsIdentified": []
+        }
+      },
+      "workflow": [
+        "Scope definition",
+        "Search strategy",
+        "Source identification",
+        "Source evaluation",
+        "Theme extraction",
+        "Synthesis",
+        "Writing"
+      ],
+      "requiredSections": [
+        "Introduction",
+        "Methodology",
+        "Thematic Analysis",
+        "Discussion",
+        "Conclusion",
+        "References"
+      ]
+    },
+    "policy_brief": {
+      "name": "Policy Brief",
+      "description": "Evidence-based policy recommendations",
+      "icon": "🏛️",
+      "category": "professional",
+      "defaults": {
+        "title": "",
+        "description": "",
+        "author": "",
+        "status": "planning",
+        "priority": "high",
+        "tags": ["policy", "brief", "recommendations"],
+        "customFields": {
+          "policyIssue": "",
+          "targetAudience": "",
+          "keyStakeholders": [],
+          "policyOptions": [],
+          "evidenceBase": [],
+          "implementationChallenges": []
+        }
+      },
+      "workflow": [
+        "Issue identification",
+        "Evidence gathering",
+        "Option analysis",
+        "Brief writing",
+        "Stakeholder review",
+        "Dissemination"
+      ],
+      "requiredSections": [
+        "Executive Summary",
+        "Problem Statement",
+        "Policy Options",
+        "Recommendations",
+        "Implementation",
+        "References"
+      ]
+    }
+  },
+  "categories": {
+    "academic": {
+      "name": "Academic Research",
+      "description": "Traditional academic research projects",
+      "icon": "🎓"
+    },
+    "professional": {
+      "name": "Professional Research",
+      "description": "Commercial and professional research work",
+      "icon": "💼"
+    },
+    "funding": {
+      "name": "Grant & Funding",
+      "description": "Research funding and grant applications",
+      "icon": "💰"
+    },
+    "research": {
+      "name": "General Research",
+      "description": "Various research methodologies and approaches",
+      "icon": "🔬"
+    }
+  },
+  "customFieldTypes": {
+    "text": "Single line text input",
+    "textarea": "Multi-line text input",
+    "number": "Numeric input",
+    "date": "Date picker",
+    "select": "Dropdown selection",
+    "multiselect": "Multiple selection",
+    "boolean": "Checkbox",
+    "array": "List of items"
+  }
+}
