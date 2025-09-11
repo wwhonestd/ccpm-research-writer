@@ -26,7 +26,8 @@ export class StorageService {
                     projects: 0,
                     citations: 0,
                     notes: 0,
-                    drafts: 0
+                    drafts: 0,
+                    outlines: 0
                 },
                 backups: [],
                 lastCleanup: new Date().toISOString()
@@ -458,7 +459,7 @@ export class StorageService {
     }
 
     // Backup and restore
-    createBackup(collections = ['projects', 'citations', 'notes', 'drafts']) {
+    createBackup(collections = ['projects', 'citations', 'notes', 'drafts', 'outlines']) {
         try {
             const backup = {
                 version: this.version,
@@ -559,7 +560,7 @@ export class StorageService {
         try {
             let cleanedCount = 0;
             
-            const collections = ['projects', 'citations', 'notes', 'drafts'];
+            const collections = ['projects', 'citations', 'notes', 'drafts', 'outlines'];
             collections.forEach(collection => {
                 const deletedItems = this.list(collection, {
                     filter: item => item.status === 'deleted'

@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Outline Builder Tests</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .test-suite {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        
+        .test-suite h2 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        
+        .test-case {
+            margin: 15px 0;
+            padding: 10px;
+            border-left: 4px solid #3498db;
+            background: #f8f9fa;
+        }
+        
+        .test-case.success {
+            border-left-color: #27ae60;
+            background: #d5f4e6;
+        }
+        
+        .test-case.failure {
+            border-left-color: #e74c3c;
+            background: #fadbd8;
+        }
+        
+        .test-results {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .test-results.success {
+            background: #d5f4e6;
+            color: #239b56;
+        }
+        
+        .test-results.failure {
+            background: #fadbd8;
+            color: #cb4335;
+        }
+        
+        .outline-demo {
+            margin: 20px 0;
+            min-height: 400px;
+        }
+        
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background: #2980b9;
+        }
+        
+        .error-log {
+            color: #e74c3c;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+    </style>
+    <link rel="stylesheet" href="../../css/modules/structure/outline.css">
+</head>
+<body>
+    <h1>Outline Builder Tests</h1>
+    
+    <div class="test-suite">
+        <h2>1. OutlineNode Tests</h2>
+        <div id="outline-node-tests"></div>
+    </div>
+    
+    <div class="test-suite">
+        <h2>2. DragDropManager Tests</h2>
+        <div id="drag-drop-tests"></div>
+    </div>
+    
+    <div class="test-suite">
+        <h2>3. OutlineBuilder Component Tests</h2>
+        <div id="outline-builder-tests"></div>
+    </div>
+    
+    <div class="test-suite">
+        <h2>4. Storage Integration Tests</h2>
+        <div id="storage-tests"></div>
+    </div>
+    
+    <div class="test-suite">
+        <h2>5. Interactive Demo</h2>
+        <button onclick="initializeDemo()">Initialize Demo</button>
+        <button onclick="populateDemoData()">Populate Sample Data</button>
+        <button onclick="testDragDrop()">Test Drag & Drop</button>
+        <button onclick="testValidation()">Test Validation</button>
+        <button onclick="testExport()">Test Export</button>
+        <div id="outline-demo" class="outline-demo"></div>
+    </div>
+    
+    <div class="test-results" id="test-results"></div>
+
+    <script type="module">
+        import { OutlineNode, OutlineUtils } from '../../js/components/structure/OutlineNode.js';
+        import { DragDropManager } from '../../js/components/structure/DragDropManager.js';
+        import { OutlineBuilder } from '../../js/components/structure/OutlineBuilder.js';
+        import { StorageService } from '../../js/services/StorageService.js';
+
+        // Test framework
+        class TestRunner {
+            constructor() {
+                this.tests = [];
+                this.passed = 0;
+                this.failed = 0;
+                this.errors = [];
+            }
+
+            addTest(name, testFn) {
+                this.tests.push({ name, testFn });
+            }
+
+            async runTests() {
+                console.log('Starting test suite...');
+                
+                for (const test of this.tests) {
+                    try {
+                        await test.testFn();
+                        this.passed++;
+                        this.logTest(test.name, true);
+                    } catch (error) {
+                        this.failed++;
+                        this.errors.push({ test: test.name, error });
+                        this.logTest(test.name, false, error.message);
+                        console.error(`Test "${test.name}" failed:`, error);
+                    }
+                }
+                
+                this.showResults();
+            }
+
+            logTest(name, passed, error = null) {
+                const testCase = document.createElement('div');
+                testCase.className = `test-case ${passed ? 'success' : 'failure'}`;
+                testCase.innerHTML = `
+                    <strong>${name}</strong>: ${passed ? 'PASS' : 'FAIL'}
+                    ${error ? `<div class="error-log">${error}</div>` : ''}
+                `;
+                
+                // Find the appropriate test suite container
+                const suite = this.getCurrentSuite();
+                if (suite) {
+                    suite.appendChild(testCase);
+                }
+            }
+
+            getCurrentSuite() {
+                // Simple heuristic based on test name
+                const currentTest = this.tests[this.passed + this.failed - 1];
+                if (!currentTest) return null;
+                
+                if (currentTest.name.includes('OutlineNode')) {
+                    return document.getElementById('outline-node-tests');
+                } else if (currentTest.name.includes('DragDrop')) {
+                    return document.getElementById('drag-drop-tests');
+                } else if (currentTest.name.includes('OutlineBuilder')) {
+                    return document.getElementById('outline-builder-tests');
+                } else if (currentTest.name.includes('Storage')) {
+                    return document.getElementById('storage-tests');
+                }
+                return document.body;
+            }
+
+            showResults() {
+                const resultsElement = document.getElementById('test-results');
+                const total = this.passed + this.failed;
+                const success = this.failed === 0;
+                
+                resultsElement.className = `test-results ${success ? 'success' : 'failure'}`;
+                resultsElement.innerHTML = `
+                    <h3>Test Results</h3>
+                    <p>Total: ${total} | Passed: ${this.passed} | Failed: ${this.failed}</p>
+                    ${this.failed > 0 ? `<p>Success Rate: ${((this.passed / total) * 100).toFixed(1)}%</p>` : '<p>All tests passed! ✓</p>'}
+                `;
+            }
+
+            assert(condition, message) {
+                if (!condition) {
+                    throw new Error(message || 'Assertion failed');
+                }
+            }
+
+            assertEqual(actual, expected, message) {
+                if (actual !== expected) {
+                    throw new Error(message || `Expected ${expected}, got ${actual}`);
+                }
+            }
+
+            assertNotNull(value, message) {
+                if (value === null || value === undefined) {
+                    throw new Error(message || 'Expected non-null value');
+                }
+            }
+
+            assertThrows(fn, message) {
+                let thrown = false;
+                try {
+                    fn();
+                } catch (error) {
+                    thrown = true;
+                }
+                if (!thrown) {
+                    throw new Error(message || 'Expected function to throw');
+                }
+            }
+        }
+
+        // Create test runner instance
+        const testRunner = new TestRunner();
+
+        // OutlineNode Tests
+        testRunner.addTest('OutlineNode: Basic creation and properties', () => {
+            const node = new OutlineNode({
+                title: 'Test Node',
+                level: 2
+            });
+            
+            testRunner.assertNotNull(node.id, 'Node should have an ID');
+            testRunner.assertEqual(node.title, 'Test Node', 'Title should be set correctly');
+            testRunner.assertEqual(node.level, 2, 'Level should be set correctly');
+            testRunner.assertEqual(node.children.length, 0, 'New node should have no children');
+            testRunner.assert(!node.collapsed, 'New node should not be collapsed');
+        });
+
+        testRunner.addTest('OutlineNode: Child management', () => {
+            const parent = new OutlineNode({ title: 'Parent', level: 1 });
+            const child = parent.addChild({ title: 'Child' });
+            
+            testRunner.assertEqual(parent.children.length, 1, 'Parent should have one child');
+            testRunner.assertEqual(child.level, 2, 'Child level should be parent level + 1');
+            testRunner.assertEqual(child.parentId, parent.id, 'Child should reference parent ID');
+            
+            const removed = parent.removeChild(child.id);
+            testRunner.assertNotNull(removed, 'Remove should return the removed child');
+            testRunner.assertEqual(parent.children.length, 0, 'Parent should have no children after removal');
+        });
+
+        testRunner.addTest('OutlineNode: Tree traversal', () => {
+            const root = new OutlineNode({ title: 'Root', level: 1 });
+            const child1 = root.addChild({ title: 'Child 1' });
+            const child2 = root.addChild({ title: 'Child 2' });
+            const grandchild = child1.addChild({ title: 'Grandchild' });
+            
+            const found = root.findNode(grandchild.id);
+            testRunner.assertNotNull(found, 'Should find deeply nested node');
+            testRunner.assertEqual(found.title, 'Grandchild', 'Found node should be correct');
+            
+            const allNodes = root.getAllNodes();
+            testRunner.assertEqual(allNodes.length, 4, 'Should return all nodes in tree');
+        });
+
+        testRunner.addTest('OutlineNode: Level management', () => {
+            const node = new OutlineNode({ title: 'Test', level: 3 });
+            
+            node.promote();
+            testRunner.assertEqual(node.level, 2, 'Promote should decrease level');
+            
+            node.demote();
+            testRunner.assertEqual(node.level, 3, 'Demote should increase level');
+            
+            // Test level boundaries
+            const root = new OutlineNode({ level: 1 });
+            root.promote(); // Should not go below 1
+            testRunner.assertEqual(root.level, 1, 'Should not promote root below level 1');
+            
+            const deep = new OutlineNode({ level: 6 });
+            deep.demote(); // Should not go above 6
+            testRunner.assertEqual(deep.level, 6, 'Should not demote beyond max level');
+        });
+
+        testRunner.addTest('OutlineNode: Word count management', () => {
+            const node = new OutlineNode({ title: 'Test' });
+            
+            node.updateWordCount(150);
+            testRunner.assertEqual(node.wordCount, 150, 'Word count should be updated');
+            
+            node.allocateWords(200);
+            testRunner.assertEqual(node.allocatedWords, 200, 'Allocated words should be updated');
+            
+            testRunner.assertEqual(node.getWordCountStatus(), 'within-limit', 'Status should be within-limit');
+            
+            node.updateWordCount(250);
+            testRunner.assertEqual(node.getWordCountStatus(), 'exceeded', 'Status should be exceeded');
+        });
+
+        testRunner.addTest('OutlineNode: Validation', () => {
+            const validNode = new OutlineNode({ title: 'Valid Node', level: 2 });
+            const validation = validNode.validate();
+            testRunner.assert(validation.isValid, 'Valid node should pass validation');
+            testRunner.assertEqual(validation.errors.length, 0, 'Valid node should have no errors');
+            
+            const invalidNode = new OutlineNode({ title: '', level: 0 });
+            const invalidValidation = invalidNode.validate();
+            testRunner.assert(!invalidValidation.isValid, 'Invalid node should fail validation');
+            testRunner.assert(invalidValidation.errors.length > 0, 'Invalid node should have errors');
+        });
+
+        testRunner.addTest('OutlineNode: JSON serialization', () => {
+            const original = new OutlineNode({ title: 'Test', level: 2 });
+            original.addChild({ title: 'Child' });
+            
+            const json = original.toJSON();
+            const restored = OutlineNode.fromJSON(json);
+            
+            testRunner.assertEqual(restored.title, original.title, 'Title should be preserved');
+            testRunner.assertEqual(restored.level, original.level, 'Level should be preserved');
+            testRunner.assertEqual(restored.children.length, original.children.length, 'Children count should be preserved');
+        });
+
+        testRunner.addTest('OutlineNode: Search functionality', () => {
+            const root = new OutlineNode({ title: 'Root' });
+            root.addChild({ title: 'JavaScript Guide' });
+            root.addChild({ title: 'Python Tutorial' });
+            root.addChild({ title: 'Advanced JavaScript' });
+            
+            const results = root.search('javascript');
+            testRunner.assertEqual(results.length, 2, 'Should find 2 JavaScript-related nodes');
+        });
+
+        testRunner.addTest('OutlineUtils: Text import', () => {
+            const text = `# Chapter 1
+## Section 1.1
+### Subsection 1.1.1
+## Section 1.2
+# Chapter 2`;
+            
+            const outline = OutlineUtils.generateOutlineFromText(text);
+            testRunner.assert(outline.children.length > 0, 'Should create outline from text');
+            
+            const chapter1 = outline.children[0];
+            testRunner.assertEqual(chapter1.title, 'Chapter 1', 'First chapter title should be correct');
+            testRunner.assert(chapter1.children.length > 0, 'Chapter should have sections');
+        });
+
+        testRunner.addTest('OutlineUtils: Markdown export', () => {
+            const root = new OutlineNode({ title: 'Root', level: 0 });
+            const chapter = root.addChild({ title: 'Chapter 1', level: 1 });
+            chapter.addChild({ title: 'Section 1.1', level: 2 });
+            
+            const markdown = OutlineUtils.exportToMarkdown(root);
+            testRunner.assert(markdown.includes('# Chapter 1'), 'Should contain chapter heading');
+            testRunner.assert(markdown.includes('## Section 1.1'), 'Should contain section heading');
+        });
+
+        testRunner.addTest('OutlineUtils: Structure validation', () => {
+            const root = new OutlineNode({ title: 'Root', level: 0 });
+            
+            // Create a well-structured outline
+            const chapter = root.addChild({ title: 'Chapter', level: 1 });
+            chapter.addChild({ title: 'Section', level: 2 });
+            
+            const validation = OutlineUtils.validateStructure(root);
+            testRunner.assert(validation.isValid, 'Well-structured outline should be valid');
+            
+            // Create problematic structure (many children)
+            const problematic = new OutlineNode({ title: 'Parent', level: 1 });
+            for (let i = 0; i < 12; i++) {
+                problematic.addChild({ title: `Child ${i}` });
+            }
+            
+            const problematicValidation = OutlineUtils.validateStructure(problematic);
+            testRunner.assert(problematicValidation.structureWarnings.length > 0, 'Should warn about too many children');
+        });
+
+        // Storage Integration Tests
+        testRunner.addTest('Storage: Save and load outline', () => {
+            const storage = new StorageService();
+            const outline = new OutlineNode({ title: 'Test Outline', level: 0 });
+            outline.addChild({ title: 'Chapter 1' });
+            
+            const outlineData = {
+                id: 'test_outline_save',
+                outline: outline.toJSON(),
+                created: new Date().toISOString(),
+                updated: new Date().toISOString()
+            };
+            
+            // Test save
+            const saved = storage.create('outlines', outlineData);
+            testRunner.assertNotNull(saved, 'Should successfully save outline');
+            
+            // Test load
+            const loaded = storage.read('outlines', 'test_outline_save');
+            testRunner.assertNotNull(loaded, 'Should successfully load outline');
+            testRunner.assertEqual(loaded.outline.title, 'Test Outline', 'Loaded outline should match saved');
+            
+            // Cleanup
+            storage.delete('outlines', 'test_outline_save');
+        });
+
+        testRunner.addTest('Storage: Update outline data', () => {
+            const storage = new StorageService();
+            const outline = new OutlineNode({ title: 'Original Title', level: 0 });
+            
+            const outlineData = {
+                id: 'test_outline_update',
+                outline: outline.toJSON(),
+                created: new Date().toISOString(),
+                updated: new Date().toISOString()
+            };
+            
+            storage.create('outlines', outlineData);
+            
+            // Update
+            outline.title = 'Updated Title';
+            outlineData.outline = outline.toJSON();
+            outlineData.updated = new Date().toISOString();
+            
+            const updated = storage.update('outlines', 'test_outline_update', outlineData);
+            testRunner.assertNotNull(updated, 'Should successfully update outline');
+            
+            const loaded = storage.read('outlines', 'test_outline_update');
+            testRunner.assertEqual(loaded.outline.title, 'Updated Title', 'Updated outline should have new title');
+            
+            // Cleanup
+            storage.delete('outlines', 'test_outline_update');
+        });
+
+        // OutlineBuilder Component Tests
+        testRunner.addTest('OutlineBuilder: Component initialization', () => {
+            const container = document.createElement('div');
+            container.id = 'test-outline-builder';
+            document.body.appendChild(container);
+            
+            const builder = new OutlineBuilder(container, {
+                autoSave: false,
+                enableDragDrop: false
+            });
+            
+            testRunner.assertNotNull(builder.outline, 'Builder should have outline instance');
+            testRunner.assertNotNull(builder.container, 'Builder should have container reference');
+            testRunner.assert(container.classList.contains('outline-builder'), 'Container should have outline-builder class');
+            
+            // Cleanup
+            builder.destroy();
+            document.body.removeChild(container);
+        });
+
+        testRunner.addTest('OutlineBuilder: Node operations', () => {
+            const container = document.createElement('div');
+            document.body.appendChild(container);
+            
+            const builder = new OutlineBuilder(container, { autoSave: false });
+            
+            // Test add root node
+            const rootNode = builder.addRootNode();
+            testRunner.assertNotNull(rootNode, 'Should create root node');
+            testRunner.assertEqual(builder.outline.children.length, 1, 'Outline should have one child');
+            
+            // Test add child node
+            const childNode = builder.addChildNode(rootNode.id);
+            testRunner.assertNotNull(childNode, 'Should create child node');
+            testRunner.assertEqual(rootNode.children.length, 1, 'Root node should have one child');
+            
+            // Test remove node
+            const removed = builder.removeNode(childNode.id);
+            testRunner.assertNotNull(removed, 'Should remove child node');
+            testRunner.assertEqual(rootNode.children.length, 0, 'Root node should have no children');
+            
+            // Cleanup
+            builder.destroy();
+            document.body.removeChild(container);
+        });
+
+        testRunner.addTest('OutlineBuilder: Event system', () => {
+            const container = document.createElement('div');
+            document.body.appendChild(container);
+            
+            const builder = new OutlineBuilder(container, { autoSave: false });
+            let eventReceived = false;
+            
+            builder.on('change', (data) => {
+                eventReceived = true;
+                testRunner.assertEqual(data.type, 'add', 'Event should have correct type');
+            });
+            
+            builder.addRootNode();
+            testRunner.assert(eventReceived, 'Should emit change event');
+            
+            // Cleanup
+            builder.destroy();
+            document.body.removeChild(container);
+        });
+
+        testRunner.addTest('OutlineBuilder: Public API methods', () => {
+            const container = document.createElement('div');
+            document.body.appendChild(container);
+            
+            const builder = new OutlineBuilder(container, { autoSave: false });
+            const node = builder.addRootNode();
+            
+            // Test getOutlineData
+            const data = builder.getOutlineData();
+            testRunner.assertNotNull(data, 'Should return outline data');
+            testRunner.assertEqual(data.children.length, 1, 'Data should include children');
+            
+            // Test getNodeById
+            const foundNode = builder.getNodeById(node.id);
+            testRunner.assertNotNull(foundNode, 'Should find node by ID');
+            testRunner.assertEqual(foundNode.id, node.id, 'Found node should match');
+            
+            // Test updateNodeWordCount
+            builder.updateNodeWordCount(node.id, 150);
+            testRunner.assertEqual(foundNode.wordCount, 150, 'Word count should be updated');
+            
+            // Test getOutlineStats
+            const stats = builder.getOutlineStats();
+            testRunner.assertNotNull(stats, 'Should return stats');
+            testRunner.assert(stats.totalNodes > 0, 'Stats should include node count');
+            
+            // Cleanup
+            builder.destroy();
+            document.body.removeChild(container);
+        });
+
+        // Initialize demo functionality
+        window.initializeDemo = function() {
+            const container = document.getElementById('outline-demo');
+            container.innerHTML = '';
+            
+            window.demoBuilder = new OutlineBuilder(container, {
+                projectId: 'demo_outline',
+                autoSave: true,
+                autoSaveDelay: 1000
+            });
+            
+            console.log('Demo initialized');
+        };
+
+        window.populateDemoData = function() {
+            if (!window.demoBuilder) {
+                alert('Please initialize demo first');
+                return;
+            }
+            
+            const builder = window.demoBuilder;
+            
+            // Clear existing data
+            builder.outline = new OutlineNode({ title: 'Research Paper Outline', level: 0 });
+            
+            // Add sample structure
+            const intro = builder.outline.addChild({ title: 'Introduction', level: 1 });
+            intro.allocateWords(300);
+            intro.updateWordCount(250);
+            
+            const background = intro.addChild({ title: 'Background', level: 2 });
+            background.allocateWords(150);
+            
+            const problem = intro.addChild({ title: 'Problem Statement', level: 2 });
+            problem.allocateWords(150);
+            
+            const literature = builder.outline.addChild({ title: 'Literature Review', level: 1 });
+            literature.allocateWords(800);
+            literature.updateWordCount(750);
+            
+            const methodology = builder.outline.addChild({ title: 'Methodology', level: 1 });
+            methodology.allocateWords(400);
+            
+            const results = builder.outline.addChild({ title: 'Results', level: 1 });
+            results.allocateWords(600);
+            
+            const conclusion = builder.outline.addChild({ title: 'Conclusion', level: 1 });
+            conclusion.allocateWords(200);
+            
+            builder.refresh();
+            console.log('Sample data populated');
+        };
+
+        window.testDragDrop = function() {
+            if (!window.demoBuilder) {
+                alert('Please initialize demo and populate data first');
+                return;
+            }
+            
+            alert('Drag and drop is enabled! Try dragging sections to reorder them.');
+        };
+
+        window.testValidation = function() {
+            if (!window.demoBuilder) {
+                alert('Please initialize demo first');
+                return;
+            }
+            
+            window.demoBuilder.validateOutline();
+        };
+
+        window.testExport = function() {
+            if (!window.demoBuilder) {
+                alert('Please initialize demo first');
+                return;
+            }
+            
+            window.demoBuilder.showExportDialog();
+        };
+
+        // Run all tests when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Running outline builder tests...');
+            testRunner.runTests().then(() => {
+                console.log('All tests completed');
+            });
+        });
+
+        // Export for debugging
+        window.testRunner = testRunner;
+        window.OutlineNode = OutlineNode;
+        window.OutlineUtils = OutlineUtils;
+        window.OutlineBuilder = OutlineBuilder;
+    </script>
+</body>
+</html>
