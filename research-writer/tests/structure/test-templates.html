@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Template System Tests</title>
+    
+    <!-- Load CSS -->
+    <link rel="stylesheet" href="../../css/modules/structure/templates.css">
+    <link rel="stylesheet" href="../../css/modules/structure/outline.css">
+    
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .test-header {
+            background: #1f2937;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .test-header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        
+        .test-nav {
+            background: #374151;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .test-nav button {
+            background: none;
+            border: none;
+            color: #d1d5db;
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+        
+        .test-nav button:hover {
+            background-color: #4b5563;
+            color: white;
+        }
+        
+        .test-nav button.active {
+            background-color: #3b82f6;
+            color: white;
+        }
+        
+        .test-section {
+            padding: 30px;
+            min-height: 600px;
+            display: none;
+        }
+        
+        .test-section.active {
+            display: block;
+        }
+        
+        .test-results {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f0f9ff;
+            border-left: 4px solid #3b82f6;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+        }
+        
+        .test-success {
+            background: #f0fdf4;
+            border-left-color: #10b981;
+            color: #065f46;
+        }
+        
+        .test-error {
+            background: #fef2f2;
+            border-left-color: #ef4444;
+            color: #991b1b;
+        }
+        
+        .component-demo {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        
+        .demo-header {
+            background: #f9fafb;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e5e7eb;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        .demo-content {
+            height: 400px;
+            overflow: hidden;
+        }
+        
+        .split-demo {
+            display: flex;
+            height: 500px;
+        }
+        
+        .split-demo > div {
+            flex: 1;
+            border-right: 1px solid #e5e7eb;
+        }
+        
+        .split-demo > div:last-child {
+            border-right: none;
+        }
+        
+        .run-test-btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 10px 5px;
+            transition: background-color 0.2s;
+        }
+        
+        .run-test-btn:hover {
+            background: #2563eb;
+        }
+        
+        .run-test-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-header">
+            <h1>Template System Tests</h1>
+            <p>Comprehensive testing for TemplateLibrary, TemplateSelector, and TemplateCustomizer</p>
+        </div>
+        
+        <div class="test-nav">
+            <button class="active" data-section="templates">Document Templates</button>
+            <button data-section="library">Template Library</button>
+            <button data-section="selector">Template Selector</button>
+            <button data-section="customizer">Template Customizer</button>
+            <button data-section="integration">Integration Tests</button>
+        </div>
+
+        <!-- Document Templates Test -->
+        <div class="test-section active" id="templates">
+            <h2>Document Templates Data Structure</h2>
+            
+            <button class="run-test-btn" onclick="runTemplateDataTests()">Run Template Data Tests</button>
+            <button class="run-test-btn" onclick="runTemplateValidationTests()">Run Validation Tests</button>
+            <button class="run-test-btn" onclick="runTemplateUtilsTests()">Run Utils Tests</button>
+            
+            <div id="template-results" class="test-results"></div>
+        </div>
+
+        <!-- Template Library Test -->
+        <div class="test-section" id="library">
+            <h2>Template Library Component</h2>
+            
+            <button class="run-test-btn" onclick="runLibraryTests()">Run Library Tests</button>
+            <button class="run-test-btn" onclick="initializeTemplateLibrary()">Initialize Demo</button>
+            
+            <div class="component-demo">
+                <div class="demo-header">Template Library Demo</div>
+                <div class="demo-content">
+                    <div id="template-library-demo"></div>
+                </div>
+            </div>
+            
+            <div id="library-results" class="test-results"></div>
+        </div>
+
+        <!-- Template Selector Test -->
+        <div class="test-section" id="selector">
+            <h2>Template Selector Component</h2>
+            
+            <button class="run-test-btn" onclick="runSelectorTests()">Run Selector Tests</button>
+            <button class="run-test-btn" onclick="initializeTemplateSelector()">Initialize Demo</button>
+            
+            <div class="component-demo">
+                <div class="demo-header">Template Selector Demo</div>
+                <div class="demo-content">
+                    <div id="template-selector-demo"></div>
+                </div>
+            </div>
+            
+            <div id="selector-results" class="test-results"></div>
+        </div>
+
+        <!-- Template Customizer Test -->
+        <div class="test-section" id="customizer">
+            <h2>Template Customizer Component</h2>
+            
+            <button class="run-test-btn" onclick="runCustomizerTests()">Run Customizer Tests</button>
+            <button class="run-test-btn" onclick="initializeTemplateCustomizer()">Initialize Demo</button>
+            
+            <div class="component-demo">
+                <div class="demo-header">Template Customizer Demo</div>
+                <div class="demo-content">
+                    <div id="template-customizer-demo"></div>
+                </div>
+            </div>
+            
+            <div id="customizer-results" class="test-results"></div>
+        </div>
+
+        <!-- Integration Tests -->
+        <div class="test-section" id="integration">
+            <h2>Integration Tests</h2>
+            
+            <button class="run-test-btn" onclick="runIntegrationTests()">Run All Integration Tests</button>
+            <button class="run-test-btn" onclick="testOutlineBuilderIntegration()">Test OutlineBuilder Integration</button>
+            <button class="run-test-btn" onclick="testStorageIntegration()">Test Storage Integration</button>
+            
+            <div class="split-demo">
+                <div>
+                    <div class="demo-header">Template System</div>
+                    <div id="integration-templates" style="height: calc(100% - 40px); overflow: auto;"></div>
+                </div>
+                <div>
+                    <div class="demo-header">OutlineBuilder</div>
+                    <div id="integration-outline" style="height: calc(100% - 40px); overflow: auto;"></div>
+                </div>
+            </div>
+            
+            <div id="integration-results" class="test-results"></div>
+        </div>
+    </div>
+
+    <!-- Load JavaScript modules -->
+    <script type="module">
+        // Import all necessary modules
+        import { DocumentTemplate, TEMPLATE_CATEGORIES, TEMPLATE_TYPES, SYSTEM_TEMPLATES, TemplateUtils } from '../../js/data/document-templates.js';
+        import { TemplateLibrary } from '../../js/components/structure/TemplateLibrary.js';
+        import { TemplateSelector } from '../../js/components/structure/TemplateSelector.js';
+        import { TemplateCustomizer } from '../../js/components/structure/TemplateCustomizer.js';
+        import { StorageService } from '../../js/services/StorageService.js';
+        import { OutlineBuilder } from '../../js/components/structure/OutlineBuilder.js';
+
+        // Make modules available globally for tests
+        window.DocumentTemplate = DocumentTemplate;
+        window.TEMPLATE_CATEGORIES = TEMPLATE_CATEGORIES;
+        window.TEMPLATE_TYPES = TEMPLATE_TYPES;
+        window.SYSTEM_TEMPLATES = SYSTEM_TEMPLATES;
+        window.TemplateUtils = TemplateUtils;
+        window.TemplateLibrary = TemplateLibrary;
+        window.TemplateSelector = TemplateSelector;
+        window.TemplateCustomizer = TemplateCustomizer;
+        window.StorageService = StorageService;
+        window.OutlineBuilder = OutlineBuilder;
+
+        // Test instances
+        let templateLibrary = null;
+        let templateSelector = null;
+        let templateCustomizer = null;
+        let outlineBuilder = null;
+        let storageService = new StorageService();
+
+        // Navigation handling
+        document.querySelectorAll('.test-nav button').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                // Update nav
+                document.querySelectorAll('.test-nav button').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                
+                // Update sections
+                document.querySelectorAll('.test-section').forEach(s => s.classList.remove('active'));
+                document.getElementById(e.target.dataset.section).classList.add('active');
+            });
+        });
+
+        // Test utility functions
+        function logResult(containerId, message, type = 'info') {
+            const container = document.getElementById(containerId);
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'success' ? 'test-success' : type === 'error' ? 'test-error' : '';
+            
+            container.className = `test-results ${className}`;
+            container.textContent = `[${timestamp}] ${message}`;
+        }
+
+        function assert(condition, message) {
+            if (!condition) {
+                throw new Error(`Assertion failed: ${message}`);
+            }
+        }
+
+        // Document Templates Tests
+        window.runTemplateDataTests = function() {
+            try {
+                let passed = 0;
+                let total = 0;
+
+                // Test template creation
+                total++;
+                const template = new DocumentTemplate({
+                    name: 'Test Template',
+                    description: 'A test template',
+                    category: TEMPLATE_CATEGORIES.CUSTOM,
+                    type: TEMPLATE_TYPES.CUSTOM,
+                    structure: [{
+                        title: 'Introduction',
+                        description: 'Intro section',
+                        wordAllocation: 500,
+                        required: true
+                    }]
+                });
+                
+                assert(template.name === 'Test Template', 'Template name should be set correctly');
+                assert(template.structure.length === 1, 'Template should have one section');
+                passed++;
+
+                // Test template cloning
+                total++;
+                const clonedTemplate = template.clone('Cloned Template');
+                assert(clonedTemplate.name === 'Cloned Template', 'Cloned template should have new name');
+                assert(clonedTemplate.id !== template.id, 'Cloned template should have different ID');
+                assert(!clonedTemplate.isSystem, 'Cloned template should not be system template');
+                passed++;
+
+                // Test outline structure conversion
+                total++;
+                const outlineStructure = template.toOutlineStructure();
+                assert(outlineStructure.children.length === 1, 'Outline structure should have one child');
+                assert(outlineStructure.children[0].title === 'Introduction', 'Section title should be preserved');
+                passed++;
+
+                // Test system templates
+                total++;
+                assert(SYSTEM_TEMPLATES.length > 0, 'Should have system templates');
+                assert(SYSTEM_TEMPLATES[0] instanceof DocumentTemplate, 'System templates should be DocumentTemplate instances');
+                passed++;
+
+                // Test JSON serialization
+                total++;
+                const json = template.toJSON();
+                const fromJson = DocumentTemplate.fromJSON(json);
+                assert(fromJson.name === template.name, 'JSON serialization should preserve template data');
+                passed++;
+
+                logResult('template-results', `Template Data Tests: ${passed}/${total} tests passed`, 'success');
+                
+            } catch (error) {
+                logResult('template-results', `Template Data Tests Failed: ${error.message}`, 'error');
+            }
+        };
+
+        window.runTemplateValidationTests = function() {
+            try {
+                let passed = 0;
+                let total = 0;
+
+                // Test valid template
+                total++;
+                const validTemplate = new DocumentTemplate({
+                    name: 'Valid Template',
+                    description: 'A valid template',
+                    category: TEMPLATE_CATEGORIES.ACADEMIC,
+                    type: TEMPLATE_TYPES.RESEARCH_PAPER,
+                    structure: [{ title: 'Section 1' }]
+                });
+                
+                const validation1 = validTemplate.validate();
+                assert(validation1.isValid, 'Valid template should pass validation');
+                passed++;
+
+                // Test invalid template (missing name)
+                total++;
+                const invalidTemplate = new DocumentTemplate({
+                    name: '',
+                    description: 'Invalid template',
+                    category: TEMPLATE_CATEGORIES.ACADEMIC,
+                    type: TEMPLATE_TYPES.RESEARCH_PAPER,
+                    structure: []
+                });
+                
+                const validation2 = invalidTemplate.validate();
+                assert(!validation2.isValid, 'Invalid template should fail validation');
+                assert(validation2.errors.length > 0, 'Should have validation errors');
+                passed++;
+
+                logResult('template-results', `Template Validation Tests: ${passed}/${total} tests passed`, 'success');
+                
+            } catch (error) {
+                logResult('template-results', `Template Validation Tests Failed: ${error.message}`, 'error');
+            }
+        };
+
+        window.runTemplateUtilsTests = function() {
+            try {
+                let passed = 0;
+                let total = 0;
+
+                // Test template search
+                total++;
+                const searchResults = TemplateUtils.searchTemplates('research');
+                assert(searchResults.length > 0, 'Should find templates matching "research"');
+                passed++;
+
+                // Test category filtering
+                total++;
+                const academicTemplates = TemplateUtils.getTemplatesByCategory(TEMPLATE_CATEGORIES.ACADEMIC);
+                assert(academicTemplates.length > 0, 'Should have academic templates');
+                assert(academicTemplates.every(t => t.category === TEMPLATE_CATEGORIES.ACADEMIC), 'All results should be academic');
+                passed++;
+
+                // Test reading time estimation
+                total++;
+                const readingTime = TemplateUtils.estimateReadingTime(1000);
+                assert(typeof readingTime === 'string', 'Should return reading time as string');
+                passed++;
+
+                // Test complexity color
+                total++;
+                const color = TemplateUtils.getComplexityColor('advanced');
+                assert(typeof color === 'string' && color.startsWith('#'), 'Should return hex color');
+                passed++;
+
+                // Test category icon
+                total++;
+                const icon = TemplateUtils.getCategoryIcon(TEMPLATE_CATEGORIES.ACADEMIC);
+                assert(typeof icon === 'string' && icon.length > 0, 'Should return icon string');
+                passed++;
+
+                logResult('template-results', `Template Utils Tests: ${passed}/${total} tests passed`, 'success');
+                
+            } catch (error) {
+                logResult('template-results', `Template Utils Tests Failed: ${error.message}`, 'error');
+            }
+        };
+
+        // Template Library Tests
+        window.runLibraryTests = function() {
+            try {
+                let passed = 0;
+                let total = 0;
+
+                // Test library initialization
+                total++;
+                if (templateLibrary) templateLibrary.destroy();
+                templateLibrary = new TemplateLibrary('template-library-demo');
+                assert(templateLibrary.templates.length > 0, 'Library should load templates');
+                passed++;
+
+                // Test template selection
+                total++;
+                const firstTemplate = templateLibrary.templates[0];
+                templateLibrary.selectTemplate(firstTemplate.id);
+                assert(templateLibrary.selectedTemplate.id === firstTemplate.id, 'Should select template correctly');
+                passed++;
+
+                // Test search functionality
+                total++;
+                templateLibrary.searchQuery = 'research';
+                templateLibrary.applyFilters();
+                assert(templateLibrary.filteredTemplates.length > 0, 'Search should return results');
+                passed++;
+
+                // Test filtering
+                total++;
+                templateLibrary.searchQuery = '';
+                templateLibrary.currentFilter.category = TEMPLATE_CATEGORIES.ACADEMIC;
+                templateLibrary.applyFilters();
+                assert(templateLibrary.filteredTemplates.every(t => t.category === TEMPLATE_CATEGORIES.ACADEMIC), 'Filter should work correctly');
+                passed++;
+
+                logResult('library-results', `Template Library Tests: ${passed}/${total} tests passed`, 'success');
+                
+            } catch (error) {
+                logResult('library-results', `Template Library Tests Failed: ${error.message}`, 'error');
+            }
+        };
+
+        window.initializeTemplateLibrary = function() {
+            try {
+                if (templateLibrary) templateLibrary.destroy();
+                templateLibrary = new TemplateLibrary('template-library-demo');
+                
+                // Set up event listeners for demo
+                templateLibrary.on('templateUse', (data) => {
+                    logResult('library-results', `Template selected for use: ${data.template.name}`, 'success');
+                });
+                
+                templateLibrary.on('templatePreview', (data) => {
+                    logResult('library-results', `Template previewed: ${data.template.name}`, 'info');
+                });
+                
+                logResult('library-results', 'Template Library Demo Initialized', 'success');
+                
+            } catch (error) {
+                logResult('library-results', `Library Demo Failed: ${error.message}`, 'error');
+            }
+        };
+
+        // Template Selector Tests
+        window.runSelectorTests = function() {
+            try {
+                let passed = 0;
+                let total = 0;
+
+                // Test selector initialization
+                total++;
+                if (templateSelector) templateSelector.destroy();
+                templateSelector = new TemplateSelector('template-selector-demo');
+                assert(templateSelector.templates.length > 0, 'Selector should load templates');
+                passed++;
+
+                // Test template selection
+                total++;
+                const firstTemplate = templateSelector.templates[0];
+                templateSelector.selectTemplate(firstTemplate.id);
+                assert(templateSelector.selectedTemplate.id === firstTemplate.id, 'Should select template correctly');
+                passed++;
+
+                // Test preview modes
+                total++;
+                templateSelector.setPreviewMode('details');
+                assert(templateSelector.previewMode === 'details', 'Should change preview mode');
+                passed++;
+
+                // Test filtering
+                total++;
+                templateSelector.setCategory('academic');
+                const filteredTemplates = templateSelector.getFilteredTemplates();
+                assert(filteredTemplates.every(t => t.category === TEMPLATE_CATEGORIES.ACADEMIC), 'Category filter should work');
+                passed++;
+
+                logResult('selector-results', `Template Selector Tests: ${passed}/${total} tests passed`, 'success');
+                
+            } catch (error) {
+                logResult('selector-results', `Template Selector Tests Failed: ${error.message}`, 'error');
+            }
+        };
+
+        window.initializeTemplateSelector = function() {
+            try {
+                if (templateSelector) templateSelector.destroy();
+                templateSelector = new TemplateSelector('template-selector-demo');
+                
+                // Set up event listeners for demo
+                templateSelector.on('templateUse', (data) => {
+                    logResult('selector-results', `Template selected for use: ${data.template.name}`, 'success');
+                });
+                
+                templateSelector.on('templateCustomize', (data) => {
+                    logResult('selector-results', `Template selected for customization: ${data.template.name}`, 'info');
+                });
+                
+                templateSelector.on('blankDocument', () => {
+                    logResult('selector-results', 'Blank document selected', 'info');
+                });
+                
+                logResult('selector-results', 'Template Selector Demo Initialized', 'success');
+                
+            } catch (error) {
+                logResult('selector-results', `Selector Demo Failed: ${error.message}`, 'error');
+            }
+        };
+
+        // Template Customizer Tests
+        window.runCustomizerTests = function() {
+            try {
+                let passed = 0;
+                let total = 0;
+
+                // Test customizer initialization
+                total++;
+                if (templateCustomizer) templateCustomizer.destroy();
+                templateCustomizer = new TemplateCustomizer('template-customizer-demo');
+                assert(templateCustomizer.template === null, 'Should start with no template');
+                passed++;
+
+                // Test template creation
+                total++;
+                templateCustomizer.createNew();
+                assert(templateCustomizer.template !== null, 'Should create new template');
+                assert(templateCustomizer.template.structure.length > 0, 'New template should have structure');
+                passed++;
+
+                // Test template editing
+                total++;
+                const testTemplate = SYSTEM_TEMPLATES[0].clone('Test Edit Template');
+                templateCustomizer.editTemplate(testTemplate);
+                assert(templateCustomizer.template.name === testTemplate.name, 'Should load template for editing');
+                passed++;
+
+                // Test validation
+                total++;
+                templateCustomizer.validateTemplate();
+                assert(Array.isArray(templateCustomizer.validationErrors), 'Should have validation errors array');
+                passed++;
+
+                logResult('customizer-results', `Template Customizer Tests: ${passed}/${total} tests passed`, 'success');
+                
+            } catch (error) {
+                logResult('customizer-results', `Template Customizer Tests Failed: ${error.message}`, 'error');
+            }
+        };
+
+        window.initializeTemplateCustomizer = function() {
+            try {
+                if (templateCustomizer) templateCustomizer.destroy();
+                templateCustomizer = new TemplateCustomizer('template-customizer-demo');
+                
+                // Set up event listeners for demo
+                templateCustomizer.on('templateSave', (data) => {
+                    logResult('customizer-results', `Template saved: ${data.template.name}`, 'success');
+                });
+                
+                templateCustomizer.on('templateCreate', (data) => {
+                    logResult('customizer-results', `Template created: ${data.template.name}`, 'success');
+                });
+                
+                logResult('customizer-results', 'Template Customizer Demo Initialized', 'success');
+                
+            } catch (error) {
+                logResult('customizer-results', `Customizer Demo Failed: ${error.message}`, 'error');
+            }
+        };
+
+        // Integration Tests
+        window.runIntegrationTests = function() {
+            try {
+                let passed = 0;
+                let total = 0;
+
+                // Test template to outline conversion
+                total++;
+                const template = SYSTEM_TEMPLATES[0];
+                const outlineData = template.toOutlineStructure();
+                assert(outlineData.children.length > 0, 'Template should convert to outline structure');
+                passed++;
+
+                // Test storage integration
+                total++;
+                const customTemplate = new DocumentTemplate({
+                    name: 'Integration Test Template',
+                    description: 'A template for integration testing',
+                    category: TEMPLATE_CATEGORIES.CUSTOM,
+                    type: TEMPLATE_TYPES.CUSTOM,
+                    structure: [{ title: 'Test Section' }]
+                });
+                
+                storageService.create('templates', customTemplate.toJSON());
+                const retrieved = storageService.read('templates', customTemplate.id);
+                assert(retrieved.name === customTemplate.name, 'Should store and retrieve templates correctly');
+                passed++;
+
+                // Test component integration
+                total++;
+                if (templateLibrary && templateSelector) {
+                    const libraryTemplates = templateLibrary.templates;
+                    const selectorTemplates = templateSelector.templates;
+                    assert(libraryTemplates.length === selectorTemplates.length, 'Components should have same templates');
+                    passed++;
+                }
+
+                logResult('integration-results', `Integration Tests: ${passed}/${total} tests passed`, 'success');
+                
+            } catch (error) {
+                logResult('integration-results', `Integration Tests Failed: ${error.message}`, 'error');
+            }
+        };
+
+        window.testOutlineBuilderIntegration = function() {
+            try {
+                // Initialize outline builder
+                if (outlineBuilder) outlineBuilder.destroy();
+                outlineBuilder = new OutlineBuilder('integration-outline');
+                
+                // Test template integration with selector
+                if (templateSelector) templateSelector.destroy();
+                templateSelector = new TemplateSelector('integration-templates', { compact: true });
+                
+                // Set up integration
+                templateSelector.on('templateUse', (data) => {
+                    const outlineStructure = data.template.toOutlineStructure();
+                    outlineBuilder.setOutlineData(outlineStructure);
+                    logResult('integration-results', `Template "${data.template.name}" applied to OutlineBuilder`, 'success');
+                });
+                
+                logResult('integration-results', 'OutlineBuilder Integration Ready - Select a template to see it applied', 'info');
+                
+            } catch (error) {
+                logResult('integration-results', `OutlineBuilder Integration Failed: ${error.message}`, 'error');
+            }
+        };
+
+        window.testStorageIntegration = function() {
+            try {
+                let passed = 0;
+                let total = 0;
+
+                // Test template storage
+                total++;
+                const testTemplate = new DocumentTemplate({
+                    name: 'Storage Test Template',
+                    description: 'Testing storage integration',
+                    category: TEMPLATE_CATEGORIES.CUSTOM,
+                    type: TEMPLATE_TYPES.CUSTOM,
+                    structure: [{ title: 'Storage Test' }]
+                });
+                
+                storageService.create('templates', testTemplate.toJSON());
+                passed++;
+
+                // Test template retrieval
+                total++;
+                const retrieved = storageService.read('templates', testTemplate.id);
+                assert(retrieved.name === testTemplate.name, 'Should retrieve stored template');
+                passed++;
+
+                // Test template listing
+                total++;
+                const allTemplates = storageService.list('templates');
+                assert(Array.isArray(allTemplates), 'Should return array of templates');
+                assert(allTemplates.some(t => t.id === testTemplate.id), 'Should include our test template');
+                passed++;
+
+                // Test template update
+                total++;
+                testTemplate.name = 'Updated Storage Test Template';
+                storageService.update('templates', testTemplate.id, testTemplate.toJSON());
+                const updated = storageService.read('templates', testTemplate.id);
+                assert(updated.name === testTemplate.name, 'Should update template correctly');
+                passed++;
+
+                // Test template deletion
+                total++;
+                storageService.delete('templates', testTemplate.id);
+                const deleted = storageService.read('templates', testTemplate.id);
+                assert(deleted === null, 'Should delete template correctly');
+                passed++;
+
+                logResult('integration-results', `Storage Integration Tests: ${passed}/${total} tests passed`, 'success');
+                
+            } catch (error) {
+                logResult('integration-results', `Storage Integration Tests Failed: ${error.message}`, 'error');
+            }
+        };
+
+        // Initialize default view
+        logResult('template-results', 'Template System Tests Ready - Click buttons to run tests', 'info');
+        logResult('library-results', 'Template Library Tests Ready', 'info');
+        logResult('selector-results', 'Template Selector Tests Ready', 'info');
+        logResult('customizer-results', 'Template Customizer Tests Ready', 'info');
+        logResult('integration-results', 'Integration Tests Ready', 'info');
+
+        // Auto-run basic tests on load
+        setTimeout(() => {
+            runTemplateDataTests();
+        }, 500);
+        
+    </script>
+</body>
+</html>
