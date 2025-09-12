@@ -1,7 +1,17 @@
 {
   "permissions": {
     "allow": [
-      "Bash(gh issue edit:*)"
+      "Bash(gh issue edit:*)",
+      "Bash(node test-imports.js)",
+      "Bash(pkill:*)",
+      "Bash(node:*)",
+      "Bash(gh issue view:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Read(//Users/wwhonest/claude-code/epic-research-writer/**)",
+      "Bash(find:*)",
+      "Bash(gh issue close:*)",
+      "Bash(git worktree:*)"
     ],
     "deny": [],
     "ask": []

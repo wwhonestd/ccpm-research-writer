@@ -1,6 +1,7 @@
 /**
  * Organize Module Layout Styles
  * Layout and component styles for the organize module tabs and panels
+ * Including Stream C analysis component integration
  */
 
 /* ===== ORGANIZE MODULE LAYOUT ===== */
@@ -414,3 +415,112 @@
         break-inside: avoid;
     }
 }
+/* ===== ANALYSIS INTEGRATION STYLES ===== */
+
+.analysis-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 0.5rem;
+}
+
+.analysis-tab-btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    background: transparent;
+    color: #666;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 4px 4px 0 0;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.analysis-tab-btn:hover {
+    color: #2196F3;
+    background: rgba(33, 150, 243, 0.1);
+}
+
+.analysis-tab-btn.active {
+    color: #2196F3;
+    border-bottom-color: #2196F3;
+    background: rgba(33, 150, 243, 0.05);
+}
+
+.analysis-panel {
+    display: none;
+}
+
+.analysis-panel.active {
+    display: block;
+}
+
+.analysis-error-notification {
+    background: #ffebee;
+    border: 1px solid #ffcdd2;
+    border-radius: 4px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    animation: slideIn 0.3s ease;
+}
+
+.error-content {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.error-icon {
+    font-size: 1.2rem;
+    color: #c62828;
+}
+
+.error-message {
+    flex: 1;
+    color: #c62828;
+    font-weight: 500;
+}
+
+.error-dismiss {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #c62828;
+    cursor: pointer;
+    padding: 0.25rem;
+    line-height: 1;
+}
+
+.error-dismiss:hover {
+    background: rgba(198, 40, 40, 0.1);
+    border-radius: 50%;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Analysis container adjustments */
+.analytics-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+#gap-analysis-container,
+#connection-map-container {
+    min-height: 600px;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+}
+

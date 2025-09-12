@@ -19,6 +19,8 @@
     <link rel="stylesheet" href="./css/layout.css">
     <link rel="stylesheet" href="./css/modules/organize.css">
     <link rel="stylesheet" href="./css/modules/research/notes.css">
+    <link rel="stylesheet" href="./css/modules/research/literature.css">
+    <link rel="stylesheet" href="./css/modules/research/analysis.css">
     
     <title>Research Writer</title>
 </head>
@@ -302,41 +304,65 @@
                                  aria-labelledby="analytics-tab"
                                  id="analytics-panel">
                                 <div class="analytics-container">
-                                    <div class="analytics-overview">
-                                        <h3>Research Overview</h3>
-                                        <div class="overview-stats">
-                                            <div class="stat-card">
-                                                <div class="stat-value" id="total-notes">0</div>
-                                                <div class="stat-label">Total Notes</div>
+                                    <!-- Sub-navigation for different analysis types -->
+                                    <div class="analysis-tabs">
+                                        <button class="analysis-tab-btn active" data-analysis="overview">Overview</button>
+                                        <button class="analysis-tab-btn" data-analysis="gaps">Research Gaps</button>
+                                        <button class="analysis-tab-btn" data-analysis="connections">Connection Map</button>
+                                    </div>
+
+                                    <!-- Overview Analysis -->
+                                    <div class="analysis-panel active" id="overview-analysis">
+                                        <div class="analytics-overview">
+                                            <h3>Research Overview</h3>
+                                            <div class="overview-stats">
+                                                <div class="stat-card">
+                                                    <div class="stat-value" id="total-notes">0</div>
+                                                    <div class="stat-label">Total Notes</div>
+                                                </div>
+                                                <div class="stat-card">
+                                                    <div class="stat-value" id="total-words">0</div>
+                                                    <div class="stat-label">Total Words</div>
+                                                </div>
+                                                <div class="stat-card">
+                                                    <div class="stat-value" id="avg-words">0</div>
+                                                    <div class="stat-label">Avg. Words/Note</div>
+                                                </div>
+                                                <div class="stat-card">
+                                                    <div class="stat-value" id="note-types">0</div>
+                                                    <div class="stat-label">Note Types</div>
+                                                </div>
                                             </div>
-                                            <div class="stat-card">
-                                                <div class="stat-value" id="total-words">0</div>
-                                                <div class="stat-label">Total Words</div>
+                                        </div>
+
+                                        <div class="analytics-charts">
+                                            <div class="chart-section">
+                                                <h4>Note Types Distribution</h4>
+                                                <div class="chart-placeholder">
+                                                    <div class="placeholder-text">Chart will appear here when notes are created</div>
+                                                </div>
                                             </div>
-                                            <div class="stat-card">
-                                                <div class="stat-value" id="avg-words">0</div>
-                                                <div class="stat-label">Avg. Words/Note</div>
-                                            </div>
-                                            <div class="stat-card">
-                                                <div class="stat-value" id="note-types">0</div>
-                                                <div class="stat-label">Note Types</div>
+                                            
+                                            <div class="chart-section">
+                                                <h4>Most Used Tags</h4>
+                                                <div class="chart-placeholder">
+                                                    <div class="placeholder-text">Tag usage chart will appear here</div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div class="analytics-charts">
-                                        <div class="chart-section">
-                                            <h4>Note Types Distribution</h4>
-                                            <div class="chart-placeholder">
-                                                <div class="placeholder-text">Chart will appear here when notes are created</div>
-                                            </div>
+                                    <!-- Gap Analysis -->
+                                    <div class="analysis-panel" id="gaps-analysis">
+                                        <div id="gap-analysis-container">
+                                            <!-- Gap analysis component will be initialized here -->
                                         </div>
-                                        
-                                        <div class="chart-section">
-                                            <h4>Most Used Tags</h4>
-                                            <div class="chart-placeholder">
-                                                <div class="placeholder-text">Tag usage chart will appear here</div>
-                                            </div>
+                                    </div>
+
+                                    <!-- Connection Map -->
+                                    <div class="analysis-panel" id="connections-analysis">
+                                        <div id="connection-map-container">
+                                            <!-- Connection map component will be initialized here -->
                                         </div>
                                     </div>
                                 </div>
@@ -384,6 +410,7 @@
     
     <!-- Scripts -->
     <script src="./js/app.js"></script>
+    <script type="module" src="./js/integration/analysis-integration.js"></script>
     
     <!-- Accessibility Announcements -->
     <div id="announcements" aria-live="polite" aria-atomic="true" class="sr-only"></div>
