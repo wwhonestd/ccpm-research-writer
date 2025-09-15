@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Components Test - Research Writer</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/layout.css">
+    <link rel="stylesheet" href="../css/components/forms.css">
+    <style>
+        body {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .test-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+        }
+        
+        .test-section h2 {
+            margin-top: 0;
+            color: #111827;
+            font-size: 1.5rem;
+        }
+        
+        .test-controls {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .test-btn {
+            padding: 8px 16px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .test-btn:hover {
+            background: #2563eb;
+        }
+        
+        .test-results {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f3f4f6;
+            border-radius: 6px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        
+        #form-container {
+            min-height: 200px;
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6b7280;
+            font-style: italic;
+        }
+        
+        #form-container.has-form {
+            border: none;
+            padding: 0;
+            align-items: stretch;
+            justify-content: stretch;
+        }
+        
+        .error-message {
+            color: #dc2626;
+            background: #fee2e2;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+        
+        .success-message {
+            color: #059669;
+            background: #d1fae5;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Form Components Test Suite</h1>
+        <p>Testing ProjectForm component with validation and StorageService integration</p>
+    </header>
+
+    <main>
+        <section class="test-section">
+            <h2>ProjectForm Component Tests</h2>
+            <div class="test-controls">
+                <button class="test-btn" onclick="testCreateForm()">Test Create Form</button>
+                <button class="test-btn" onclick="testEditForm()">Test Edit Form</button>
+                <button class="test-btn" onclick="testCloneForm()">Test Clone Form</button>
+                <button class="test-btn" onclick="testValidation()">Test Validation</button>
+                <button class="test-btn" onclick="clearForm()">Clear Form</button>
+            </div>
+            <div id="form-container">
+                Click a test button to load a form...
+            </div>
+        </section>
+
+        <section class="test-section">
+            <h2>Validation Engine Tests</h2>
+            <div class="test-controls">
+                <button class="test-btn" onclick="testValidationEngine()">Test Validation Engine</button>
+                <button class="test-btn" onclick="testProjectValidation()">Test Project Validation</button>
+                <button class="test-btn" onclick="testValidationRules()">Test Validation Rules</button>
+            </div>
+            <div id="validation-results" class="test-results">Click a validation test button to see results...</div>
+        </section>
+
+        <section class="test-section">
+            <h2>StorageService Integration</h2>
+            <div class="test-controls">
+                <button class="test-btn" onclick="testStorageIntegration()">Test Storage Integration</button>
+                <button class="test-btn" onclick="clearStorage()">Clear Storage</button>
+                <button class="test-btn" onclick="viewStorage()">View Storage</button>
+            </div>
+            <div id="storage-results" class="test-results">Click a storage test button to see results...</div>
+        </section>
+    </main>
+
+    <!-- Load modules -->
+    <script type="module">
+        import { ProjectForm } from '../js/components/ProjectForm.js';
+        import { ValidationEngine, ValidationRules, ValidationUtils } from '../js/utils/validation.js';
+        import { StorageService } from '../js/services/StorageService.js';
+        import { Project } from '../js/models/Project.js';
+
+        // Mock ProjectManager for testing
+        class MockProjectManager {
+            constructor() {
+                this.storage = new StorageService();
+                this.templates = {
+                    academic: {
+                        id: 'academic',
+                        name: 'Academic Research',
+                        icon: '🎓',
+                        category: 'research',
+                        description: 'For academic research projects',
+                        defaults: {
+                            priority: 'medium',
+                            status: 'planning',
+                            tags: ['academic', 'research'],
+                            customFields: {
+                                institution: '',
+                                supervisor: '',
+                                deadline: ''
+                            }
+                        }
+                    }
+                };
+                this.templateCategories = {
+                    research: {
+                        name: 'Research',
+                        icon: '📚'
+                    }
+                };
+            }
+
+            getTemplates() {
+                return this.templates;
+            }
+
+            getTemplate(id) {
+                return this.templates[id];
+            }
+
+            getTemplateCategories() {
+                return this.templateCategories;
+            }
+
+            async createProject(data, templateId) {
+                const project = new Project(data);
+                return this.storage.create('projects', project.toJSON());
+            }
+
+            async updateProject(id, data) {
+                return this.storage.update('projects', id, data);
+            }
+
+            getProject(id) {
+                const data = this.storage.read('projects', id);
+                return data ? Project.fromJSON(data) : null;
+            }
+
+            listProjects() {
+                const projects = this.storage.list('projects');
+                return projects.map(data => Project.fromJSON(data));
+            }
+        }
+
+        // Initialize test environment
+        window.projectManager = new MockProjectManager();
+        window.currentForm = null;
+
+        // Test functions
+        window.testCreateForm = function() {
+            clearForm();
+            const container = document.getElementById('form-container');
+            container.classList.add('has-form');
+            
+            window.currentForm = new ProjectForm(container, window.projectManager, {
+                mode: 'create',
+                onSave: (project) => {
+                    showMessage('Project created successfully!', 'success');
+                    console.log('Created project:', project);
+                },
+                onCancel: () => {
+                    clearForm();
+                }
+            });
+        };
+
+        window.testEditForm = async function() {
+            // First create a test project if none exists
+            const projects = window.projectManager.listProjects();
+            let testProject;
+            
+            if (projects.length === 0) {
+                testProject = await window.projectManager.createProject({
+                    title: 'Test Project for Editing',
+                    author: 'Test Author',
+                    description: 'This is a test project for editing functionality',
+                    status: 'active',
+                    priority: 'high',
+                    tags: ['test', 'editing']
+                });
+            } else {
+                testProject = projects[0];
+            }
+
+            clearForm();
+            const container = document.getElementById('form-container');
+            container.classList.add('has-form');
+            
+            window.currentForm = new ProjectForm(container, window.projectManager, {
+                mode: 'edit',
+                projectId: testProject.id,
+                onSave: (project) => {
+                    showMessage('Project updated successfully!', 'success');
+                    console.log('Updated project:', project);
+                },
+                onCancel: () => {
+                    clearForm();
+                }
+            });
+        };
+
+        window.testCloneForm = async function() {
+            // First create a test project if none exists
+            const projects = window.projectManager.listProjects();
+            let testProject;
+            
+            if (projects.length === 0) {
+                testProject = await window.projectManager.createProject({
+                    title: 'Original Project for Cloning',
+                    author: 'Original Author',
+                    description: 'This is the original project that will be cloned',
+                    status: 'completed',
+                    priority: 'high',
+                    tags: ['original', 'cloning', 'test']
+                });
+            } else {
+                testProject = projects[0];
+            }
+
+            clearForm();
+            const container = document.getElementById('form-container');
+            container.classList.add('has-form');
+            
+            window.currentForm = new ProjectForm(container, window.projectManager, {
+                mode: 'clone',
+                sourceProjectId: testProject.id,
+                onSave: (project) => {
+                    showMessage('Project cloned successfully!', 'success');
+                    console.log('Cloned project:', project);
+                },
+                onCancel: () => {
+                    clearForm();
+                }
+            });
+        };
+
+        window.testValidation = function() {
+            clearForm();
+            const container = document.getElementById('form-container');
+            container.classList.add('has-form');
+            
+            window.currentForm = new ProjectForm(container, window.projectManager, {
+                mode: 'create',
+                enableRealTimeValidation: true,
+                onSave: (project) => {
+                    showMessage('Validation test passed - project saved!', 'success');
+                },
+                onCancel: () => {
+                    clearForm();
+                }
+            });
+            
+            showMessage('Form loaded with real-time validation enabled. Try entering invalid data to see validation in action.', 'success');
+        };
+
+        window.clearForm = function() {
+            if (window.currentForm) {
+                window.currentForm.destroy();
+                window.currentForm = null;
+            }
+            const container = document.getElementById('form-container');
+            container.classList.remove('has-form');
+            container.innerHTML = 'Click a test button to load a form...';
+        };
+
+        window.testValidationEngine = function() {
+            const validator = new ValidationEngine();
+            const results = [];
+            
+            // Test basic validators
+            const tests = [
+                { value: '', rule: 'required', expected: false },
+                { value: 'test', rule: 'required', expected: true },
+                { value: 'test@example.com', rule: 'email', expected: true },
+                { value: 'invalid-email', rule: 'email', expected: false },
+                { value: 'short', rule: { minLength: { min: 10 } }, expected: false },
+                { value: 'long enough string', rule: { minLength: { min: 10 } }, expected: true },
+            ];
+            
+            tests.forEach(test => {
+                const isValid = validator.runValidation('testField', test.value, [test.rule]).length === 0;
+                results.push(`${JSON.stringify(test.rule)} with "${test.value}": ${isValid} (expected: ${test.expected}) ${isValid === test.expected ? '✓' : '✗'}`);
+            });
+            
+            document.getElementById('validation-results').textContent = results.join('\n');
+        };
+
+        window.testProjectValidation = function() {
+            const validator = new ValidationEngine();
+            const testProjects = [
+                { title: '', author: '', description: '' }, // Should fail
+                { title: 'Valid Title', author: 'Valid Author', description: 'Valid description' }, // Should pass
+                { title: 'x'.repeat(501), author: 'Valid Author', description: '' }, // Title too long
+                { title: 'Valid Title', author: '', description: '' }, // No author
+            ];
+            
+            const results = [];
+            testProjects.forEach((project, index) => {
+                const result = validator.validateProject(project);
+                results.push(`Test ${index + 1}: ${result.isValid ? 'PASS' : 'FAIL'}`);
+                if (!result.isValid) {
+                    results.push(`  Errors: ${JSON.stringify(result.errors, null, 2)}`);
+                }
+            });
+            
+            document.getElementById('validation-results').textContent = results.join('\n');
+        };
+
+        window.testValidationRules = function() {
+            const rules = ValidationRules;
+            const results = [];
+            
+            results.push('Available Validation Rules:');
+            results.push('========================');
+            
+            Object.entries(rules).forEach(([category, categoryRules]) => {
+                results.push(`\n${category.toUpperCase()}:`);
+                Object.entries(categoryRules).forEach(([field, fieldRules]) => {
+                    results.push(`  ${field}: ${JSON.stringify(fieldRules)}`);
+                });
+            });
+            
+            document.getElementById('validation-results').textContent = results.join('\n');
+        };
+
+        window.testStorageIntegration = async function() {
+            const storage = new StorageService();
+            const results = [];
+            
+            try {
+                results.push('Testing StorageService integration...\n');
+                
+                // Test project creation
+                const testProject = new Project({
+                    title: 'Storage Test Project',
+                    author: 'Test Author',
+                    description: 'Testing storage integration'
+                });
+                
+                const saved = storage.create('projects', testProject.toJSON());
+                results.push(`✓ Project created: ${saved.id}`);
+                
+                // Test reading
+                const retrieved = storage.read('projects', saved.id);
+                results.push(`✓ Project retrieved: ${retrieved ? retrieved.title : 'null'}`);
+                
+                // Test updating
+                const updated = storage.update('projects', saved.id, {
+                    ...retrieved,
+                    description: 'Updated description'
+                });
+                results.push(`✓ Project updated: ${updated.description}`);
+                
+                // Test listing
+                const projects = storage.list('projects');
+                results.push(`✓ Projects listed: ${projects.length} total`);
+                
+                // Test deletion
+                const deleted = storage.delete('projects', saved.id);
+                results.push(`✓ Project deleted: ${deleted}`);
+                
+                // Test storage stats
+                const stats = storage.getStats();
+                results.push('\nStorage Stats:');
+                results.push(`  Total items: ${stats.totalItems}`);
+                results.push(`  Used space: ${stats.usedPercent.toFixed(1)}%`);
+                
+            } catch (error) {
+                results.push(`✗ Error: ${error.message}`);
+            }
+            
+            document.getElementById('storage-results').textContent = results.join('\n');
+        };
+
+        window.clearStorage = function() {
+            const storage = new StorageService();
+            storage.clear();
+            document.getElementById('storage-results').textContent = 'Storage cleared successfully!';
+        };
+
+        window.viewStorage = function() {
+            const storage = new StorageService();
+            const projects = storage.list('projects');
+            const stats = storage.getStats();
+            
+            const results = [];
+            results.push('Storage Contents:');
+            results.push('================');
+            results.push(`Total projects: ${projects.length}`);
+            results.push(`Storage usage: ${stats.usedPercent.toFixed(1)}%\n`);
+            
+            if (projects.length > 0) {
+                results.push('Projects:');
+                projects.forEach((project, index) => {
+                    results.push(`${index + 1}. ${project.title} (${project.status})`);
+                    results.push(`   Author: ${project.author}`);
+                    results.push(`   Created: ${new Date(project.created).toLocaleString()}`);
+                });
+            } else {
+                results.push('No projects in storage.');
+            }
+            
+            document.getElementById('storage-results').textContent = results.join('\n');
+        };
+
+        window.showMessage = function(message, type = 'info') {
+            // Remove existing messages
+            document.querySelectorAll('.error-message, .success-message').forEach(el => el.remove());
+            
+            const messageEl = document.createElement('div');
+            messageEl.className = type === 'success' ? 'success-message' : 'error-message';
+            messageEl.textContent = message;
+            
+            const container = document.getElementById('form-container');
+            container.parentNode.insertBefore(messageEl, container);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                messageEl.remove();
+            }, 5000);
+        };
+
+        // Initialize page
+        console.log('Form test page loaded successfully');
+        console.log('Available test functions:', Object.keys(window).filter(key => key.startsWith('test')));
+    </script>
+</body>
+</html>

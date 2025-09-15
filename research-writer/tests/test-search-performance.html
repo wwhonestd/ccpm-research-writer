@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Performance Test - Research Writer</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/layout.css">
+    <link rel="stylesheet" href="../css/components/project-list.css">
+    <style>
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .test-results {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+        }
+        .performance-metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .metric-value.good { color: #28a745; }
+        .metric-value.warning { color: #ffc107; }
+        .metric-value.error { color: #dc3545; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Search Performance Test</h1>
+        
+        <div class="test-results">
+            <h2>Performance Metrics</h2>
+            <div class="performance-metric">
+                <span>Search Debounce Delay:</span>
+                <span class="metric-value good">200ms</span>
+            </div>
+            <div class="performance-metric">
+                <span>Filter Processing Time:</span>
+                <span class="metric-value" id="filter-time">Not tested</span>
+            </div>
+            <div class="performance-metric">
+                <span>Rendering Time (100 projects):</span>
+                <span class="metric-value" id="render-time">Not tested</span>
+            </div>
+            <div class="performance-metric">
+                <span>Total Search Response Time:</span>
+                <span class="metric-value" id="total-time">Not tested</span>
+            </div>
+        </div>
+
+        <div class="test-actions">
+            <button id="run-performance-test" class="btn btn-primary">Run Performance Test</button>
+            <button id="generate-test-data" class="btn btn-secondary">Generate Test Data</button>
+            <button id="clear-test-data" class="btn btn-secondary">Clear Test Data</button>
+        </div>
+
+        <!-- Search Filter Component -->
+        <div id="search-filter-container"></div>
+
+        <!-- Project List Container -->
+        <div id="project-list-container"></div>
+    </div>
+
+    <script type="module">
+        import { SearchFilter } from '../js/components/SearchFilter.js';
+        import { ProjectList } from '../js/components/ProjectList.js';
+        import { ProjectManager } from '../js/components/ProjectManager.js';
+        import { Project } from '../js/models/Project.js';
+
+        // Test data generator
+        function generateTestProjects(count) {
+            const projects = [];
+            const statuses = ['planning', 'active', 'completed', 'archived'];
+            const priorities = ['low', 'medium', 'high', 'urgent'];
+            const authors = ['Alice Johnson', 'Bob Smith', 'Carol Davis', 'David Wilson', 'Eva Brown'];
+            const tags = ['research', 'academic', 'science', 'technology', 'analysis', 'review', 'study'];
+            
+            for (let i = 1; i <= count; i++) {
+                const project = new Project({
+                    title: `Test Project ${i}: ${getRandomTitle()}`,
+                    description: `This is a test project description for project ${i}. ${getRandomDescription()}`,
+                    author: authors[Math.floor(Math.random() * authors.length)],
+                    status: statuses[Math.floor(Math.random() * statuses.length)],
+                    priority: priorities[Math.floor(Math.random() * priorities.length)],
+                    tags: getRandomTags(tags),
+                    created: new Date(Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000).toISOString(),
+                    updated: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString()
+                });
+                projects.push(project);
+            }
+            
+            return projects;
+        }
+
+        function getRandomTitle() {
+            const titles = [
+                'Machine Learning Analysis',
+                'Data Science Research',
+                'Climate Change Study',
+                'Urban Planning Review',
+                'Healthcare Innovation',
+                'Educational Technology',
+                'Renewable Energy Solutions',
+                'Social Media Impact',
+                'Artificial Intelligence Ethics',
+                'Sustainable Development'
+            ];
+            return titles[Math.floor(Math.random() * titles.length)];
+        }
+
+        function getRandomDescription() {
+            const descriptions = [
+                'A comprehensive study analyzing various aspects of the research domain.',
+                'Investigating innovative approaches and methodologies in the field.',
+                'Exploring the impact and implications of recent developments.',
+                'A detailed analysis of current trends and future possibilities.',
+                'Examining best practices and emerging technologies.',
+                'Research focused on solving real-world challenges and problems.',
+                'An in-depth investigation of theoretical and practical applications.',
+                'Study of interdisciplinary approaches and collaborative methods.'
+            ];
+            return descriptions[Math.floor(Math.random() * descriptions.length)];
+        }
+
+        function getRandomTags(tags) {
+            const count = Math.floor(Math.random() * 4) + 1;
+            const selected = [];
+            for (let i = 0; i < count; i++) {
+                const tag = tags[Math.floor(Math.random() * tags.length)];
+                if (!selected.includes(tag)) {
+                    selected.push(tag);
+                }
+            }
+            return selected;
+        }
+
+        // Performance testing
+        class PerformanceTester {
+            constructor() {
+                this.testProjects = [];
+                this.searchFilter = null;
+                this.projectList = null;
+                this.projectManager = null;
+                this.init();
+            }
+
+            async init() {
+                try {
+                    this.projectManager = new ProjectManager();
+                    await this.projectManager.init();
+                    this.setupComponents();
+                    this.setupEventListeners();
+                } catch (error) {
+                    console.error('Failed to initialize performance tester:', error);
+                }
+            }
+
+            setupComponents() {
+                // Setup SearchFilter
+                this.searchFilter = new SearchFilter(
+                    document.getElementById('search-filter-container'),
+                    {
+                        placeholder: 'Search projects for performance testing...',
+                        searchDelay: 200,
+                        onSearch: (data) => this.handleSearch(data),
+                        onFilter: (data) => this.handleFilter(data),
+                        onSort: (data) => this.handleSort(data)
+                    }
+                );
+
+                // Setup ProjectList
+                this.projectList = new ProjectList(
+                    document.getElementById('project-list-container'),
+                    this.projectManager,
+                    {
+                        itemsPerPage: 20,
+                        showSearch: false, // Using standalone SearchFilter
+                        showFilters: false,
+                        showSort: false
+                    }
+                );
+            }
+
+            setupEventListeners() {
+                document.getElementById('run-performance-test').addEventListener('click', () => {
+                    this.runPerformanceTest();
+                });
+
+                document.getElementById('generate-test-data').addEventListener('click', () => {
+                    this.generateTestData();
+                });
+
+                document.getElementById('clear-test-data').addEventListener('click', () => {
+                    this.clearTestData();
+                });
+            }
+
+            async generateTestData() {
+                const count = 100;
+                console.log(`Generating ${count} test projects...`);
+                
+                const startTime = performance.now();
+                this.testProjects = generateTestProjects(count);
+                
+                // Update SearchFilter with test data
+                this.searchFilter.updateData(this.testProjects);
+                
+                // Clear existing projects and add test data
+                await this.projectManager.storage.clear('projects');
+                
+                for (const project of this.testProjects) {
+                    await this.projectManager.storage.create('projects', project.toJSON());
+                }
+                
+                await this.projectList.refresh();
+                
+                const endTime = performance.now();
+                console.log(`Generated ${count} test projects in ${endTime - startTime}ms`);
+                
+                alert(`Generated ${count} test projects successfully!`);
+            }
+
+            async clearTestData() {
+                await this.projectManager.storage.clear('projects');
+                await this.projectList.refresh();
+                this.testProjects = [];
+                this.searchFilter.updateData([]);
+                alert('Test data cleared!');
+            }
+
+            async runPerformanceTest() {
+                if (this.testProjects.length === 0) {
+                    alert('Please generate test data first!');
+                    return;
+                }
+
+                console.log('Running performance tests...');
+                
+                // Test 1: Filter Processing Time
+                const filterStartTime = performance.now();
+                const searchQuery = 'machine';
+                const filteredProjects = this.testProjects.filter(project => 
+                    project.title.toLowerCase().includes(searchQuery) ||
+                    project.description.toLowerCase().includes(searchQuery) ||
+                    project.author.toLowerCase().includes(searchQuery) ||
+                    (project.tags && project.tags.some(tag => tag.toLowerCase().includes(searchQuery)))
+                );
+                const filterEndTime = performance.now();
+                const filterTime = filterEndTime - filterStartTime;
+
+                // Test 2: Rendering Time
+                const renderStartTime = performance.now();
+                // Force re-render of project list
+                this.projectList.filteredProjects = filteredProjects;
+                this.projectList.updateView();
+                const renderEndTime = performance.now();
+                const renderTime = renderEndTime - renderStartTime;
+
+                // Test 3: Total Response Time (filter + render)
+                const totalTime = filterTime + renderTime;
+
+                // Update UI with results
+                this.updatePerformanceMetrics({
+                    filterTime,
+                    renderTime,
+                    totalTime
+                });
+
+                console.log('Performance Test Results:', {
+                    filterTime: `${filterTime.toFixed(2)}ms`,
+                    renderTime: `${renderTime.toFixed(2)}ms`,
+                    totalTime: `${totalTime.toFixed(2)}ms`,
+                    projectsFiltered: filteredProjects.length,
+                    totalProjects: this.testProjects.length
+                });
+            }
+
+            updatePerformanceMetrics({ filterTime, renderTime, totalTime }) {
+                const getClassForTime = (time, thresholds = { good: 50, warning: 100 }) => {
+                    if (time <= thresholds.good) return 'good';
+                    if (time <= thresholds.warning) return 'warning';
+                    return 'error';
+                };
+
+                // Update filter time
+                const filterElement = document.getElementById('filter-time');
+                filterElement.textContent = `${filterTime.toFixed(2)}ms`;
+                filterElement.className = `metric-value ${getClassForTime(filterTime)}`;
+
+                // Update render time
+                const renderElement = document.getElementById('render-time');
+                renderElement.textContent = `${renderTime.toFixed(2)}ms`;
+                renderElement.className = `metric-value ${getClassForTime(renderTime, { good: 100, warning: 200 })}`;
+
+                // Update total time
+                const totalElement = document.getElementById('total-time');
+                totalElement.textContent = `${totalTime.toFixed(2)}ms`;
+                totalElement.className = `metric-value ${getClassForTime(totalTime, { good: 150, warning: 250 })}`;
+
+                // Show success message if performance is good
+                if (totalTime <= 200) {
+                    setTimeout(() => {
+                        alert(`✅ Performance test passed!\n\nTotal response time: ${totalTime.toFixed(2)}ms (target: <200ms)\n\nBreakdown:\n- Filter: ${filterTime.toFixed(2)}ms\n- Render: ${renderTime.toFixed(2)}ms`);
+                    }, 100);
+                } else {
+                    setTimeout(() => {
+                        alert(`⚠️ Performance test failed.\n\nTotal response time: ${totalTime.toFixed(2)}ms (target: <200ms)\n\nConsider optimizing the search algorithm or implementing virtualization for large datasets.`);
+                    }, 100);
+                }
+            }
+
+            handleSearch(data) {
+                const startTime = performance.now();
+                
+                // Simulate the search filtering
+                let filtered = [...this.testProjects];
+                
+                if (data.query) {
+                    const query = data.query.toLowerCase();
+                    filtered = filtered.filter(project => 
+                        data.fields.some(field => {
+                            const value = project[field];
+                            if (typeof value === 'string') {
+                                return value.toLowerCase().includes(query);
+                            } else if (Array.isArray(value)) {
+                                return value.some(v => 
+                                    typeof v === 'string' && v.toLowerCase().includes(query)
+                                );
+                            }
+                            return false;
+                        })
+                    );
+                }
+
+                this.projectList.filteredProjects = filtered;
+                this.projectList.updateView();
+                
+                const endTime = performance.now();
+                console.log(`Search completed in ${(endTime - startTime).toFixed(2)}ms`);
+            }
+
+            handleFilter(data) {
+                // Implementation for filter handling
+                console.log('Filter applied:', data);
+            }
+
+            handleSort(data) {
+                // Implementation for sort handling
+                console.log('Sort applied:', data);
+            }
+        }
+
+        // Initialize performance tester when page loads
+        window.addEventListener('DOMContentLoaded', () => {
+            const tester = new PerformanceTester();
+        });
+    </script>
+</body>
+</html>

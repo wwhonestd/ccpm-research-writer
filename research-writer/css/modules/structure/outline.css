@@ -1,0 +1,453 @@
+/**
+ * Outline Builder Styles
+ * Interactive outline editor with drag-and-drop functionality
+ */
+
+/* Main outline container */
+.outline-builder {
+    background: #ffffff;
+    border: 1px solid #e1e5e9;
+    border-radius: 8px;
+    padding: 20px;
+    min-height: 400px;
+    position: relative;
+}
+
+.outline-builder__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e1e5e9;
+}
+
+.outline-builder__title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0;
+}
+
+.outline-builder__actions {
+    display: flex;
+    gap: 8px;
+}
+
+.outline-builder__btn {
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.outline-builder__btn:hover {
+    background: #2980b9;
+    transform: translateY(-1px);
+}
+
+.outline-builder__btn--secondary {
+    background: #95a5a6;
+}
+
+.outline-builder__btn--secondary:hover {
+    background: #7f8c8d;
+}
+
+.outline-builder__btn--danger {
+    background: #e74c3c;
+}
+
+.outline-builder__btn--danger:hover {
+    background: #c0392b;
+}
+
+/* Outline tree container */
+.outline-tree {
+    min-height: 300px;
+    position: relative;
+}
+
+.outline-tree--empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    color: #95a5a6;
+    font-style: italic;
+    border: 2px dashed #bdc3c7;
+    border-radius: 4px;
+}
+
+/* Outline node styles */
+.outline-node {
+    position: relative;
+    margin-bottom: 8px;
+    user-select: none;
+}
+
+.outline-node__content {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border: 1px solid #e1e5e9;
+    border-radius: 4px;
+    cursor: grab;
+    transition: all 0.2s ease;
+}
+
+.outline-node__content:hover {
+    background: #e9ecef;
+    border-color: #d1ecf1;
+    transform: translateX(2px);
+}
+
+.outline-node__content--dragging {
+    opacity: 0.5;
+    cursor: grabbing;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+.outline-node__content--drag-over {
+    background: #d1ecf1;
+    border-color: #3498db;
+}
+
+.outline-node__content--selected {
+    background: #ebf3fd;
+    border-color: #3498db;
+}
+
+/* Node hierarchy indicators */
+.outline-node__indent {
+    width: 20px;
+    height: 1px;
+    display: inline-block;
+}
+
+.outline-node__toggle {
+    width: 16px;
+    height: 16px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 8px;
+    color: #7f8c8d;
+    font-size: 12px;
+    transition: color 0.2s ease;
+}
+
+.outline-node__toggle:hover {
+    color: #2c3e50;
+}
+
+.outline-node__toggle--collapsed::before {
+    content: "▶";
+}
+
+.outline-node__toggle--expanded::before {
+    content: "▼";
+}
+
+.outline-node__toggle--leaf {
+    visibility: hidden;
+}
+
+/* Node content and editing */
+.outline-node__title {
+    flex: 1;
+    font-size: 14px;
+    color: #2c3e50;
+    margin: 0 8px;
+    padding: 2px 4px;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    background: transparent;
+    cursor: text;
+    transition: all 0.2s ease;
+}
+
+.outline-node__title--editing {
+    background: white;
+    border-color: #3498db;
+    outline: none;
+}
+
+.outline-node__level {
+    font-size: 10px;
+    color: #95a5a6;
+    background: #ecf0f1;
+    padding: 2px 6px;
+    border-radius: 10px;
+    margin-right: 8px;
+    min-width: 20px;
+    text-align: center;
+}
+
+/* Node actions */
+.outline-node__actions {
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.outline-node__content:hover .outline-node__actions {
+    opacity: 1;
+}
+
+.outline-node__action {
+    width: 20px;
+    height: 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 2px;
+    color: #95a5a6;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.outline-node__action:hover {
+    background: #e74c3c;
+    color: white;
+}
+
+.outline-node__action--add {
+    color: #27ae60;
+}
+
+.outline-node__action--add:hover {
+    background: #27ae60;
+    color: white;
+}
+
+/* Node children container */
+.outline-node__children {
+    margin-left: 20px;
+    border-left: 2px solid #ecf0f1;
+    padding-left: 12px;
+    margin-top: 8px;
+    transition: all 0.3s ease;
+}
+
+.outline-node__children--collapsed {
+    display: none;
+}
+
+.outline-node__children--empty {
+    border-left-color: transparent;
+}
+
+/* Drag and drop indicators */
+.outline-drop-indicator {
+    height: 2px;
+    background: #3498db;
+    margin: 2px 0;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    border-radius: 1px;
+}
+
+.outline-drop-indicator--active {
+    opacity: 1;
+}
+
+.outline-drop-zone {
+    min-height: 30px;
+    border: 2px dashed transparent;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #95a5a6;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.outline-drop-zone--active {
+    border-color: #3498db;
+    background: rgba(52, 152, 219, 0.05);
+    color: #3498db;
+}
+
+/* Outline statistics */
+.outline-stats {
+    display: flex;
+    gap: 16px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #e1e5e9;
+    font-size: 12px;
+    color: #7f8c8d;
+}
+
+.outline-stats__item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.outline-stats__value {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+/* Auto-save indicator */
+.outline-save-status {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    font-size: 10px;
+    color: #95a5a6;
+    padding: 2px 8px;
+    border-radius: 12px;
+    background: #ecf0f1;
+    transition: all 0.2s ease;
+}
+
+.outline-save-status--saving {
+    color: #f39c12;
+    background: #fef9e7;
+}
+
+.outline-save-status--saved {
+    color: #27ae60;
+    background: #d5f4e6;
+}
+
+.outline-save-status--error {
+    color: #e74c3c;
+    background: #fadbd8;
+}
+
+/* Validation messages */
+.outline-validation {
+    margin-top: 12px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    border-left: 4px solid;
+}
+
+.outline-validation--warning {
+    background: #fef9e7;
+    border-color: #f39c12;
+    color: #d68910;
+}
+
+.outline-validation--error {
+    background: #fadbd8;
+    border-color: #e74c3c;
+    color: #cb4335;
+}
+
+.outline-validation--success {
+    background: #d5f4e6;
+    border-color: #27ae60;
+    color: #239b56;
+}
+
+/* Word allocation indicators */
+.outline-node__word-count {
+    font-size: 10px;
+    color: #7f8c8d;
+    background: #f8f9fa;
+    padding: 1px 6px;
+    border-radius: 8px;
+    margin-left: 8px;
+    border: 1px solid #e1e5e9;
+}
+
+.outline-node__word-count--allocated {
+    background: #d1ecf1;
+    color: #2980b9;
+    border-color: #85c1e9;
+}
+
+.outline-node__word-count--exceeded {
+    background: #fadbd8;
+    color: #cb4335;
+    border-color: #f1948a;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .outline-builder {
+        padding: 16px;
+    }
+    
+    .outline-builder__header {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+    }
+    
+    .outline-builder__actions {
+        justify-content: center;
+    }
+    
+    .outline-node__children {
+        margin-left: 16px;
+        padding-left: 8px;
+    }
+    
+    .outline-stats {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+}
+
+/* Accessibility */
+.outline-node__content:focus-within {
+    outline: 2px solid #3498db;
+    outline-offset: 2px;
+}
+
+.outline-builder__btn:focus {
+    outline: 2px solid #3498db;
+    outline-offset: 2px;
+}
+
+/* Animation for expanding/collapsing */
+@keyframes expand {
+    from {
+        opacity: 0;
+        max-height: 0;
+    }
+    to {
+        opacity: 1;
+        max-height: 1000px;
+    }
+}
+
+@keyframes collapse {
+    from {
+        opacity: 1;
+        max-height: 1000px;
+    }
+    to {
+        opacity: 0;
+        max-height: 0;
+    }
+}
+
+.outline-node__children--expanding {
+    animation: expand 0.3s ease;
+}
+
+.outline-node__children--collapsing {
+    animation: collapse 0.3s ease;
+}

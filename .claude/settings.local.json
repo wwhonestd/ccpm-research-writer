@@ -1,39 +1,21 @@
 {
   "permissions": {
     "allow": [
-      "Bash(bash .claude/scripts/test-and-log.sh:*)",
-      "Bash(.claude/scripts/test-and-log.sh:*)",
-      "Bash(bash .claude/scripts/pm/*)",
-      "Bash(.claude/scripts/pm/*)",
-
-      "Bash(cat *)",
+      "Bash(gh issue edit:*)",
+      "Bash(node test-imports.js)",
+      "Bash(pkill:*)",
+      "Bash(node:*)",
+      "Bash(gh issue view:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Read(//Users/wwhonest/claude-code/epic-research-writer/**)",
+      "Bash(find:*)",
+      "Bash(gh issue close:*)",
+      "Bash(git worktree:*)",
       "Bash(cat:*)",
-      "Bash(composer *)",
-      "Bash(fi)",
-      "Bash(find *)",
-      "Bash(gh *)",
-      "Bash(git *)",
-      "Bash(grep *)",
-      "Bash(kill:*)",
-      "Bash(ln:*)",
-      "Bash(ls *)",
-      "Bash(mv *)",
-      "Bash(npm *)",
-      "Bash(npx *)",
-      "Bash(pnpm *)",
-      "Bash(pytest *)",
-      "Bash(python *)",
-      "Bash(rm *)",
-      "Bash(ruff check *)",
-      "Bash(ruff check:*)",
-      "Bash(sed *)",
-      "Bash(sed:*)",
-      "Bash(then)",
-      "Bash(touch *)",
-      "Bash(tree *)",
-      "List(**)",
-      "WebFetch(domain:github.com)",
-      "WebSearch"
-    ]
+      "Bash(test:*)"
+    ],
+    "deny": [],
+    "ask": []
   }
 }
