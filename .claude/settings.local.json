@@ -12,7 +12,8 @@
       "Bash(find:*)",
       "Bash(gh issue close:*)",
       "Bash(git worktree:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(test:*)"
     ],
     "deny": [],
     "ask": []
